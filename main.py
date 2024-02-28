@@ -23,6 +23,7 @@ Bots = 1
 Selector = "Dealer"
 
 
+# Subprogram of detail--------------------------------------------
 # Reset x,y after clicked
 def reset():
     global x, y
@@ -40,6 +41,47 @@ def text(Contain, x_text, y_text, color, size):
     screen.blit(text, text_rect)
 
 
+def bet():
+    text("Place your Bet", width // 2 + 350, height // 2 - 450, white, 60)
+
+
+# Movement sprite--------------------------------------------
+class MovingSprite(pygame.sprite.Sprite):
+    def __init__(self, image, pos):
+        super().__init__()
+        self.image = image
+        self.rect = self.image.get_rect(center=pos)
+        self.target_pos = None
+
+    def update(self):
+        if self.target_pos:
+            # Find way and length
+            direction = pygame.math.Vector2(self.target_pos) - pygame.math.Vector2(
+                self.rect.center
+            )
+            # Distance will convert in pixel
+            distance = direction.length()
+            if distance > 1:
+                direction.normalize_ip()
+                self.rect.move_ip(direction * min(distance, 5))
+
+
+# Make this for easier movement input-------------------------
+
+
+# Using this Subprogam before loop to create object sprite
+def create_sprite(image, pos):
+    sprite = MovingSprite(image, pos)
+    return sprite
+
+
+# Using this Subprogram in loop to move the object sprite
+def update_sprite(sprite, target_pos):
+    sprite.target_pos = target_pos
+    sprite.update()
+
+
+# Subprogram of screen---------------------------------------
 def Main_screen():
     bg = pygame.image.load("data/screen/Main_screen.png")
     pygame.Surface.blit(screen, bg, (0, 0))
@@ -88,7 +130,7 @@ def Setting_screen():
 def Play_screen():
     bg = pygame.image.load("data/screen/Play_screen.png")
     pygame.Surface.blit(screen, bg, (0, 0))
-    text("Place your Bet", width // 2 + 350, height // 2 - 450, white, 60)
+    bet()
 
 
 while True:
@@ -104,6 +146,5 @@ while True:
         running_screen = Setting_screen()
     if running_screen == "Screen_play":
         running_screen = Play_screen()
-    print(running_screen)
     pygame.display.flip()
     fps.tick(60)
