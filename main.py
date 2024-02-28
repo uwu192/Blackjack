@@ -1,16 +1,109 @@
 import pygame
 
 pygame.init()
-
+# x and y is the position clicked
+x = 0
+y = 0
+# screen variable
+height = 1600
+width = 900
+# set logo and screen
 pygame.display.set_caption("BLACKJACK🃏")
-screen = pygame.display.set_mode((1600, 900))
+screen = pygame.display.set_mode((height, width))
 
+# fps
 fps = pygame.time.Clock()
+# Background screen is running
+running_screen = "Main"
+white = (255, 255, 255)
+green = (0, 255, 0)
+blue = (0, 0, 128)
+# Game
+Bots = 1
+Selector = "Dealer"
+
+
+# Reset x,y after clicked
+def reset():
+    global x, y
+    x = 0
+    y = 0
+
+
+# Get text
+def text(Contain, x_text, y_text, color, size):
+    pygame.font.init()
+    font = pygame.font.Font("data/font.ttf", size)
+    text = font.render(Contain, True, color)
+    text_rect = text.get_rect()
+    text_rect.center = (x_text, y_text)
+    screen.blit(text, text_rect)
+
+
+def Main_screen():
+    bg = pygame.image.load("data/screen/Main_screen.png")
+    pygame.Surface.blit(screen, bg, (0, 0))
+    # Enter Setting screen
+    if (919 > x) and (x > 731):
+        if 685 > y > 416:
+            return "Screen_setting"
+    return "Main"
+
+
+def Setting_screen():
+    global Bots
+    global Selector
+    if Selector == "Dealer":
+        bg = pygame.image.load("data/screen/Setting_screen(Dealer).png")
+    else:
+        bg = pygame.image.load("data/screen/Setting_screen(Player).png")
+    pygame.Surface.blit(screen, bg, (0, 0))
+    text(str(Bots), 840, 460, white, 100)
+    Bots = int(Bots)
+    # Role pick
+    if 1259 > x > 1038:
+        if 709 > y > 579:
+            Selector = "Player"
+    if 968 > x > 739:
+        if 702 > y > 584:
+            Selector = "Dealer"
+    # Add or remove bots
+    if 1104 > x > 1021:
+        if 423 > y > 352:
+            if Bots < 4:
+                Bots += 1
+                reset()
+    if 1081 > x > 1024:
+        if 535 > y > 483:
+            if Bots > 1:
+                Bots -= 1
+                reset()
+    # Enter Play screen
+    if 970 > x > 610:
+        if 874 > y > 763:
+            return "Screen_play"
+    return "Screen_setting"
+
+
+def Play_screen():
+    bg = pygame.image.load("data/screen/Play_screen.png")
+    pygame.Surface.blit(screen, bg, (0, 0))
+    text("Place your Bet", width // 2 + 350, height // 2 - 450, white, 60)
+
 
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-
-    pygame.display.update()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            x = event.pos[0]
+            y = event.pos[1]
+    if running_screen == "Main":
+        running_screen = Main_screen()
+    if running_screen == "Screen_setting":
+        running_screen = Setting_screen()
+    if running_screen == "Screen_play":
+        running_screen = Play_screen()
+    print(running_screen)
+    pygame.display.flip()
     fps.tick(60)
