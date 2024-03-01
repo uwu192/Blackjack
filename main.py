@@ -1,4 +1,6 @@
 import pygame
+import os
+import sys
 
 pygame.init()
 # x and y is the position clicked
@@ -14,7 +16,7 @@ screen = pygame.display.set_mode((height, width))
 # fps
 fps = pygame.time.Clock()
 # Background screen is running
-running_screen = "Main"
+running_screen = "Screen_play"
 white = (255, 255, 255)
 green = (0, 255, 0)
 blue = (0, 0, 128)
@@ -81,6 +83,17 @@ def update_sprite(sprite, target_pos):
     sprite.update()
 
 
+chips = []
+# Loop create object chip
+directory = "data/chip"
+for chip in os.listdir(directory):
+    file_path = os.path.join(directory, chip)
+    chip_img = pygame.image.load(file_path)
+    chip = create_sprite(chip_img, (100, 100))
+    chips.append(chip)
+print(chips)
+
+
 # Subprogram of screen---------------------------------------
 def Main_screen():
     bg = pygame.image.load("data/screen/Main_screen.png")
@@ -137,6 +150,7 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
+            sys.exit()
         if event.type == pygame.MOUSEBUTTONDOWN:
             x = event.pos[0]
             y = event.pos[1]
