@@ -16,7 +16,7 @@ screen = pygame.display.set_mode((height, width))
 # fps
 fps = pygame.time.Clock()
 # Background screen is running
-running_screen = "Screen_play"
+running_screen = "Screen_Bet"
 white = (255, 255, 255)
 green = (0, 255, 0)
 blue = (0, 0, 128)
@@ -86,12 +86,22 @@ def update_sprite(sprite, target_pos):
 chips = []
 # Loop create object chip
 directory = "data/chip"
+x_position_add = 0
+count_chip = 0
 for chip in os.listdir(directory):
+    """Create count_chip because bet chip bot at center so that after display 3 chips,
+    we need add more space to not display chips on bet chip box"""
+    if count_chip < 3:
+        x_position_add += 200
+        count_chip += 1
+    else:
+        x_position_add += 400
+        count_chip = 0
     file_path = os.path.join(directory, chip)
     chip_img = pygame.image.load(file_path)
-    chip = create_sprite(chip_img, (100, 100))
+    chip_img = pygame.transform.scale(chip_img, (200, 200))
+    chip = create_sprite(chip_img, (x_position_add, 700))
     chips.append(chip)
-print(chips)
 
 
 # Subprogram of screen---------------------------------------
@@ -140,10 +150,14 @@ def Setting_screen():
     return "Screen_setting"
 
 
-def Play_screen():
+def Bet_screen():
     bg = pygame.image.load("data/screen/Play_screen.png")
     pygame.Surface.blit(screen, bg, (0, 0))
     bet()
+    for chip in chips:
+        update_sprite(chip, (400, 300))
+        screen.blit(chip.image, chip.rect)
+    return "Bet_screen"
 
 
 while True:
@@ -158,7 +172,7 @@ while True:
         running_screen = Main_screen()
     if running_screen == "Screen_setting":
         running_screen = Setting_screen()
-    if running_screen == "Screen_play":
-        running_screen = Play_screen()
+    if running_screen == "Screen_Bet":
+        running_screen = Bet_screen()
     pygame.display.flip()
     fps.tick(60)
