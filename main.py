@@ -27,7 +27,7 @@ Selector = "Dealer"
 
 # Subprogram of detail--------------------------------------------
 # Reset x,y after clicked
-def reset():
+def reset_click():
     global x, y
     x = 0
     y = 0
@@ -65,7 +65,7 @@ class MovingSprite(pygame.sprite.Sprite):
             distance = direction.length()
             if distance > 1:
                 direction.normalize_ip()
-                self.rect.move_ip(direction * min(distance, 5))
+                self.rect.move_ip(direction * min(distance, 50))
 
 
 # Make this for easier movement input-------------------------
@@ -109,10 +109,10 @@ def Main_screen():
     bg = pygame.image.load("data/screen/Main_screen.png")
     pygame.Surface.blit(screen, bg, (0, 0))
     # Enter Setting screen
-    if (919 > x) and (x > 731):
+    if 919 > x > 731:
         if 685 > y > 416:
-            return "Screen_setting"
-    return "Main"
+            return "Screen_Setting"
+    return "Screen_Main"
 
 
 def Setting_screen():
@@ -137,27 +137,64 @@ def Setting_screen():
         if 423 > y > 352:
             if Bots < 4:
                 Bots += 1
-                reset()
+                ()
     if 1081 > x > 1024:
         if 535 > y > 483:
             if Bots > 1:
                 Bots -= 1
-                reset()
+                ()
     # Enter Play screen
     if 970 > x > 610:
         if 874 > y > 763:
-            return "Screen_play"
-    return "Screen_setting"
+            return "Screen_Bet"
+    return "Screen_Setting"
+
+
+pos_betbox = (782, 619)
+chip_moving = False
+chip_running = None
+
+
+def Chip_move_clicked():
+    global chip_moving, chip_running
+    if 260 > x > 105:
+        if 770 > y > 635:
+            chip_running = chips[0]
+            chip_moving = True
+    if 469 > x > 320:
+        if 770 > y > 635:
+            chip_running = chips[1]
+            chip_moving = True
+    if 650 > x > 525:
+        if 770 > y > 635:
+            chip_running = chips[2]
+            chip_moving = True
+    if 1054 > x > 937:
+        if 770 > y > 635:
+            chip_running = chips[3]
+            chip_moving = True
+    if 1285 > x > 1121:
+        if 770 > y > 635:
+            chip_running = chips[4]
+            chip_moving = True
+    if 1449 > x > 1317:
+        if 770 > y > 635:
+            chip_running = chips[5]
+            chip_moving = True
+    if chip_moving:
+        chip_running.target_pos = pos_betbox
+        chip_running.update()
+        screen.blit(chip.image, chip.rect)
 
 
 def Bet_screen():
     bg = pygame.image.load("data/screen/Play_screen.png")
     pygame.Surface.blit(screen, bg, (0, 0))
     bet()
+    Chip_move_clicked()
     for chip in chips:
-        update_sprite(chip, (400, 300))
         screen.blit(chip.image, chip.rect)
-    return "Bet_screen"
+    return "Screen_Bet"
 
 
 while True:
@@ -168,11 +205,13 @@ while True:
         if event.type == pygame.MOUSEBUTTONDOWN:
             x = event.pos[0]
             y = event.pos[1]
-    if running_screen == "Main":
+            print(x, y)
+    if running_screen == "Screen_Main":
         running_screen = Main_screen()
-    if running_screen == "Screen_setting":
+    if running_screen == "Screen_Setting":
         running_screen = Setting_screen()
     if running_screen == "Screen_Bet":
         running_screen = Bet_screen()
+    reset_click()
     pygame.display.flip()
     fps.tick(60)
