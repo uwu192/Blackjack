@@ -1,6 +1,7 @@
 import pygame
 import os
 import sys
+import random
 
 pygame.init()
 # x and y is the position clicked
@@ -21,6 +22,7 @@ white = (255, 255, 255)
 green = (0, 255, 0)
 blue = (0, 0, 128)
 # Game
+mbucks = 20000
 Bots = 1
 Selector = "Dealer"
 
@@ -150,37 +152,57 @@ def Setting_screen():
     return "Screen_Setting"
 
 
-pos_betbox = (782, 619)
 chip_moving = False
 chip_running = None
 
 
-def Chip_move_clicked():
-    global chip_moving, chip_running
+def display_mbucks_left():
+    text(f"Left :{mbucks} MBucks", height // 2, 250, white, 80)
+
+
+def random_pos_target():
+    pos_betbox = (random.randint(758, 819), random.randint(615, 664))
+    return pos_betbox
+
+
+def chip_move_clicked():
+    global chip_moving, chip_running, mbucks, pos_betbox
     if 260 > x > 105:
         if 770 > y > 635:
+            mbucks -= 5
             chip_running = chips[0]
             chip_moving = True
+            pos_betbox = random_pos_target()
     if 469 > x > 320:
         if 770 > y > 635:
+            mbucks -= 10
             chip_running = chips[1]
             chip_moving = True
+            pos_betbox = random_pos_target()
     if 650 > x > 525:
         if 770 > y > 635:
+            mbucks -= 50
             chip_running = chips[2]
             chip_moving = True
+            pos_betbox = random_pos_target()
     if 1054 > x > 937:
         if 770 > y > 635:
+            mbucks -= 100
             chip_running = chips[3]
             chip_moving = True
+            pos_betbox = random_pos_target()
     if 1285 > x > 1121:
         if 770 > y > 635:
+            mbucks -= 1000
             chip_running = chips[4]
             chip_moving = True
+            pos_betbox = random_pos_target()
     if 1449 > x > 1317:
         if 770 > y > 635:
+            mbucks -= 10000
             chip_running = chips[5]
             chip_moving = True
+            pos_betbox = random_pos_target()
     if chip_moving:
         chip_running.target_pos = pos_betbox
         chip_running.update()
@@ -191,7 +213,8 @@ def Bet_screen():
     bg = pygame.image.load("data/screen/Play_screen.png")
     pygame.Surface.blit(screen, bg, (0, 0))
     bet()
-    Chip_move_clicked()
+    chip_move_clicked()
+    display_mbucks_left()
     for chip in chips:
         screen.blit(chip.image, chip.rect)
     return "Screen_Bet"
