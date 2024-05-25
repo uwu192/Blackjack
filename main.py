@@ -14,22 +14,22 @@ width = 900
 pygame.display.set_caption("BLACKJACK🃏")
 screen = pygame.display.set_mode((height, width))
 
+
 # fps
 fps = pygame.time.Clock()
 # Background screen is running
-running_screen = "Screen_Bet"
+running_screen = "Bet"
 white = (255, 255, 255)
 green = (0, 255, 0)
 blue = (0, 0, 128)
 # Game
-mbucks = 20000
 Bots = 1
 Selector = "Dealer"
 
 
 # Subprogram of detail--------------------------------------------
-# Reset x,y after clicked
-def reset_click():
+# Reset x,y after clicked(or else it'll contain x,y and loop infinity if they meet func if else)
+def reset():
     global x, y
     x = 0
     y = 0
@@ -59,7 +59,7 @@ class MovingSprite(pygame.sprite.Sprite):
 
     def update(self):
         if self.target_pos:
-            # Find way and length
+            # Find way and length to pos
             direction = pygame.math.Vector2(self.target_pos) - pygame.math.Vector2(
                 self.rect.center
             )
@@ -67,7 +67,8 @@ class MovingSprite(pygame.sprite.Sprite):
             distance = direction.length()
             if distance > 1:
                 direction.normalize_ip()
-                self.rect.move_ip(direction * min(distance, 50))
+                # (Dis, speed)
+                self.rect.move_ip(direction * min(distance, 20))
 
 
 # Make this for easier movement input-------------------------
@@ -85,39 +86,127 @@ def update_sprite(sprite, target_pos):
     sprite.update()
 
 
-chips = []
-# Loop create object chip
-directory = "data/chip"
-x_position_add = 0
-count_chip = 0
-for chip in os.listdir(directory):
-    """Create count_chip because bet chip bot at center so that after display 3 chips,
-    we need add more space to not display chips on bet chip box"""
-    if count_chip < 3:
-        x_position_add += 200
-        count_chip += 1
-    else:
-        x_position_add += 400
-        count_chip = 0
-    file_path = os.path.join(directory, chip)
-    chip_img = pygame.image.load(file_path)
+# Create object chip---------------------------------------
+# Player can create more object in one chip
+pos_bet_1 = []
+pos_bet_2 = []
+pos_bet_3 = []
+pos_bet_4 = []
+pos_bet_5 = []
+pos_bet_6 = []
+chips_1 = []
+chips_2 = []
+chips_3 = []
+chips_4 = []
+chips_5 = []
+chips_6 = []
+x_list = [199, 407, 586, 1028, 1191, 1394]
+scale_x_chip = 0
+
+
+def create_5():
+    global chips
+    chip_img = pygame.image.load("data/chip/1.png")
     chip_img = pygame.transform.scale(chip_img, (200, 200))
-    chip = create_sprite(chip_img, (x_position_add, 700))
-    chips.append(chip)
+    chip = create_sprite(chip_img, (x_list[0], 700))
+    chips_1.append(chip)
+    pos_bet_1.append((random.randint(771, 816), random.randint(608, 793)))
+
+
+def create_10():
+    global chips
+    chip_img = pygame.image.load("data/chip/2.png")
+    chip_img = pygame.transform.scale(chip_img, (200, 200))
+    chip = create_sprite(chip_img, (x_list[1], 700))
+    chips_2.append(chip)
+    pos_bet_2.append((random.randint(771, 816), random.randint(608, 793)))
+
+
+def create_50():
+    global chips
+    chip_img = pygame.image.load("data/chip/3.png")
+    chip_img = pygame.transform.scale(chip_img, (200, 200))
+    chip = create_sprite(chip_img, (x_list[2], 700))
+    chips_3.append(chip)
+    pos_bet_3.append((random.randint(771, 816), random.randint(608, 793)))
+
+
+def create_100():
+    global chips
+    chip_img = pygame.image.load("data/chip/4.png")
+    chip_img = pygame.transform.scale(chip_img, (200, 200))
+    chip = create_sprite(chip_img, (x_list[3], 700))
+    chips_4.append(chip)
+    pos_bet_4.append((random.randint(771, 816), random.randint(608, 793)))
+
+
+def create_1k():
+    global chips
+    chip_img = pygame.image.load("data/chip/5.png")
+    chip_img = pygame.transform.scale(chip_img, (200, 200))
+    chip = create_sprite(chip_img, (x_list[4], 700))
+    chips_5.append(chip)
+    pos_bet_5.append((random.randint(771, 816), random.randint(608, 793)))
+
+
+def create_10k():
+    global chips
+    chip_img = pygame.image.load("data/chip/6.png")
+    chip_img = pygame.transform.scale(chip_img, (200, 200))
+    chip = create_sprite(chip_img, (x_list[5], 700))
+    chips_6.append(chip)
+    pos_bet_6.append((random.randint(771, 816), random.randint(608, 793)))
+
+
+chips_moved = [False] * 6
+
+
+# If player clicked chip(screen, not object), create object for that chip
+def Select_chips():
+    if 105 < x < 284:
+        if 630 < y < 761:
+            create_5()
+            chips_moved[0] = True
+            reset()
+    if 314 < x < 482:
+        if 625 < y < 784:
+            create_10()
+            chips_moved[1] = True
+            reset()
+    if 519 < x < 652:
+        if 623 < y < 785:
+            create_50()
+            chips_moved[2] = True
+            reset()
+    if 928 < x < 1074:
+        if 615 < y < 747:
+            create_100()
+            chips_moved[3] = True
+            reset()
+    if 1117 < x < 1282:
+        if 618 < y < 762:
+            create_1k()
+            chips_moved[4] = True
+            reset()
+    if 1312 < x < 1467:
+        if 632 < y < 784:
+            create_10k()
+            chips_moved[5] = True
+            reset()
 
 
 # Subprogram of screen---------------------------------------
-def Main_screen():
+def Main():
     bg = pygame.image.load("data/screen/Main_screen.png")
     pygame.Surface.blit(screen, bg, (0, 0))
     # Enter Setting screen
-    if 919 > x > 731:
+    if (919 > x) and (x > 731):
         if 685 > y > 416:
-            return "Screen_Setting"
-    return "Screen_Main"
+            return "Setting"
+    return "Main"
 
 
-def Setting_screen():
+def Setting():
     global Bots
     global Selector
     if Selector == "Dealer":
@@ -139,85 +228,51 @@ def Setting_screen():
         if 423 > y > 352:
             if Bots < 4:
                 Bots += 1
-                ()
+                reset()
     if 1081 > x > 1024:
         if 535 > y > 483:
             if Bots > 1:
                 Bots -= 1
-                ()
+                reset()
     # Enter Play screen
     if 970 > x > 610:
         if 874 > y > 763:
-            return "Screen_Bet"
-    return "Screen_Setting"
+            return "Bet"
+    return "Setting"
 
 
-chip_moving = False
-chip_running = None
-
-
-def display_mbucks_left():
-    text(f"Left :{mbucks} MBucks", height // 2, 250, white, 80)
-
-
-def random_pos_target():
-    pos_betbox = (random.randint(758, 819), random.randint(615, 664))
-    return pos_betbox
-
-
-def chip_move_clicked():
-    global chip_moving, chip_running, mbucks, pos_betbox
-    if 260 > x > 105:
-        if 770 > y > 635:
-            mbucks -= 5
-            chip_running = chips[0]
-            chip_moving = True
-            pos_betbox = random_pos_target()
-    if 469 > x > 320:
-        if 770 > y > 635:
-            mbucks -= 10
-            chip_running = chips[1]
-            chip_moving = True
-            pos_betbox = random_pos_target()
-    if 650 > x > 525:
-        if 770 > y > 635:
-            mbucks -= 50
-            chip_running = chips[2]
-            chip_moving = True
-            pos_betbox = random_pos_target()
-    if 1054 > x > 937:
-        if 770 > y > 635:
-            mbucks -= 100
-            chip_running = chips[3]
-            chip_moving = True
-            pos_betbox = random_pos_target()
-    if 1285 > x > 1121:
-        if 770 > y > 635:
-            mbucks -= 1000
-            chip_running = chips[4]
-            chip_moving = True
-            pos_betbox = random_pos_target()
-    if 1449 > x > 1317:
-        if 770 > y > 635:
-            mbucks -= 10000
-            chip_running = chips[5]
-            chip_moving = True
-            pos_betbox = random_pos_target()
-    if chip_moving:
-        chip_running.target_pos = pos_betbox
-        chip_running.update()
-        screen.blit(chip.image, chip.rect)
-
-
-def Bet_screen():
-    bg = pygame.image.load("data/screen/Play_screen.png")
+def Bet():
+    global counter_1, counter_2, counter_3, counter_4, counter_5, counter_6
+    bg = pygame.image.load("data/screen/Bet_screen.png")
     pygame.Surface.blit(screen, bg, (0, 0))
     bet()
-    chip_move_clicked()
-    display_mbucks_left()
-    for chip in chips:
-        screen.blit(chip.image, chip.rect)
-    return "Screen_Bet"
+    Select_chips()
+    if chips_moved[0] == True:
+        for chip in range(len(chips_1)):
+            update_sprite(chips_1[chip], (pos_bet_1[chip]))
+            screen.blit(chips_1[chip].image, chips_1[chip].rect)
+    if chips_moved[1] == True:
+        for chip in range(len(chips_2)):
+            update_sprite(chips_2[chip], (pos_bet_2[chip]))
+            screen.blit(chips_2[chip].image, chips_2[chip].rect)
+    if chips_moved[2] == True:
+        for chip in range(len(chips_3)):
+            update_sprite(chips_3[chip], (pos_bet_3[chip]))
+            screen.blit(chips_3[chip].image, chips_3[chip].rect)
+    if chips_moved[3] == True:
+        for chip in range(len(chips_4)):
+            update_sprite(chips_4[chip], (pos_bet_4[chip]))
+            screen.blit(chips_4[chip].image, chips_4[chip].rect)
+    if chips_moved[4] == True:
+        for chip in range(len(chips_5)):
+            update_sprite(chips_5[chip], (pos_bet_5[chip]))
+            screen.blit(chips_5[chip].image, chips_5[chip].rect)
+    if chips_moved[5] == True:
+        for chip in range(len(chips_6)):
+            print("yes")
+            update_sprite(chips_6[chip], (pos_bet_6[chip]))
+            screen.blit(chips_6[chip].image, chips_6[chip].rect)
+    return "Bet"
 
 
 while True:
@@ -229,12 +284,11 @@ while True:
             x = event.pos[0]
             y = event.pos[1]
             print(x, y)
-    if running_screen == "Screen_Main":
-        running_screen = Main_screen()
-    if running_screen == "Screen_Setting":
-        running_screen = Setting_screen()
-    if running_screen == "Screen_Bet":
-        running_screen = Bet_screen()
-    reset_click()
+    if running_screen == "Main":
+        running_screen = Main()
+    if running_screen == "Setting":
+        running_screen = Setting()
+    if running_screen == "Bet":
+        running_screen = Bet()
     pygame.display.flip()
     fps.tick(60)
