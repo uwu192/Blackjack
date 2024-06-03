@@ -18,13 +18,18 @@ screen = pygame.display.set_mode((height, width))
 # fps
 fps = pygame.time.Clock()
 # Background screen is running
-running_screen = "Bet"
+running_screen = "Main"
 white = (255, 255, 255)
+black = (0, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 128)
 # Game
 Bots = 1
 Selector = "Dealer"
+Bucks = 10000
+Bucks_bet = 0
+text_Bucks = "10.000"
+counter_disapear = 0
 
 
 # Subprogram of detail--------------------------------------------
@@ -45,8 +50,31 @@ def text(Contain, x_text, y_text, color, size):
     screen.blit(text, text_rect)
 
 
-def bet():
+# Create dot in text(Ex:10000 -> 10.000)
+def Bucks_dot():
+    counter = 0
+    text_Bucks = str(Bucks)
+    chars = len(text_Bucks)
+    for char in range(chars - 1, -1, -1):
+        counter += 1
+        if counter % 3 == 0 and char > 0:
+            text_Bucks = text_Bucks[:char] + "." + text_Bucks[char:]
+    return text_Bucks
+
+
+def Bet_text():
+    text(f"Bucks:{Bucks_dot()}", 800, 231, black, 80)
     text("Place your Bet", width // 2 + 350, height // 2 - 450, white, 60)
+
+
+def Not_enough_text():
+    global counter_disapear
+    if counter_disapear < 50:
+        text("Not enough bucks!!!", 771, 57, green, 100)
+        counter_disapear += 1
+    else:
+        counter_disapear = 0
+        reset()
 
 
 # Movement sprite--------------------------------------------
@@ -163,36 +191,94 @@ chips_moved = [False] * 6
 
 # If player clicked chip(screen, not object), create object for that chip
 def Select_chips():
+    global Bucks, Bucks_bet
     if 105 < x < 284:
         if 630 < y < 761:
-            create_5()
-            chips_moved[0] = True
-            reset()
+            if Bucks - 5 >= 0:
+                Bucks_bet += 5
+                Bucks -= 5
+                create_5()
+                chips_moved[0] = True
+                reset()
+            else:
+                Not_enough_text()
     if 314 < x < 482:
         if 625 < y < 784:
-            create_10()
-            chips_moved[1] = True
-            reset()
+            if Bucks - 10 >= 0:
+                Bucks_bet += 10
+                Bucks -= 10
+                create_10()
+                chips_moved[1] = True
+                reset()
+            else:
+                Not_enough_text()
     if 519 < x < 652:
         if 623 < y < 785:
-            create_50()
-            chips_moved[2] = True
-            reset()
+            if Bucks - 50 >= 0:
+                Bucks_bet += 50
+                Bucks -= 50
+                create_50()
+                chips_moved[2] = True
+                reset()
+            else:
+                Not_enough_text()
     if 928 < x < 1074:
         if 615 < y < 747:
-            create_100()
-            chips_moved[3] = True
-            reset()
+            if Bucks - 100 >= 0:
+                Bucks_bet += 100
+                Bucks -= 100
+                create_100()
+                chips_moved[3] = True
+                reset()
+            else:
+                Not_enough_text()
     if 1117 < x < 1282:
         if 618 < y < 762:
-            create_1k()
-            chips_moved[4] = True
-            reset()
+            if Bucks - 1000 >= 0:
+                Bucks_bet += 1000
+                Bucks -= 1000
+                create_1k()
+                chips_moved[4] = True
+                reset()
+            else:
+                Not_enough_text()
     if 1312 < x < 1467:
         if 632 < y < 784:
-            create_10k()
-            chips_moved[5] = True
-            reset()
+            if Bucks - 10000 >= 0:
+                Bucks_bet += 10000
+                Bucks -= 10000
+                create_10k()
+                chips_moved[5] = True
+                reset()
+            else:
+                Not_enough_text()
+
+
+def display_chip():
+    if chips_moved[0] == True:
+        for chip in range(len(chips_1)):
+            update_sprite(chips_1[chip], (pos_bet_1[chip]))
+            screen.blit(chips_1[chip].image, chips_1[chip].rect)
+    if chips_moved[1] == True:
+        for chip in range(len(chips_2)):
+            update_sprite(chips_2[chip], (pos_bet_2[chip]))
+            screen.blit(chips_2[chip].image, chips_2[chip].rect)
+    if chips_moved[2] == True:
+        for chip in range(len(chips_3)):
+            update_sprite(chips_3[chip], (pos_bet_3[chip]))
+            screen.blit(chips_3[chip].image, chips_3[chip].rect)
+    if chips_moved[3] == True:
+        for chip in range(len(chips_4)):
+            update_sprite(chips_4[chip], (pos_bet_4[chip]))
+            screen.blit(chips_4[chip].image, chips_4[chip].rect)
+    if chips_moved[4] == True:
+        for chip in range(len(chips_5)):
+            update_sprite(chips_5[chip], (pos_bet_5[chip]))
+            screen.blit(chips_5[chip].image, chips_5[chip].rect)
+    if chips_moved[5] == True:
+        for chip in range(len(chips_6)):
+            update_sprite(chips_6[chip], (pos_bet_6[chip]))
+            screen.blit(chips_6[chip].image, chips_6[chip].rect)
 
 
 # Subprogram of screen---------------------------------------
@@ -234,7 +320,7 @@ def Setting():
             if Bots > 1:
                 Bots -= 1
                 reset()
-    # Enter Play screen
+    # Enter Bet screen
     if 970 > x > 610:
         if 874 > y > 763:
             return "Bet"
@@ -245,34 +331,25 @@ def Bet():
     global counter_1, counter_2, counter_3, counter_4, counter_5, counter_6
     bg = pygame.image.load("data/screen/Bet_screen.png")
     pygame.Surface.blit(screen, bg, (0, 0))
-    bet()
+    Bet_text()
     Select_chips()
-    if chips_moved[0] == True:
-        for chip in range(len(chips_1)):
-            update_sprite(chips_1[chip], (pos_bet_1[chip]))
-            screen.blit(chips_1[chip].image, chips_1[chip].rect)
-    if chips_moved[1] == True:
-        for chip in range(len(chips_2)):
-            update_sprite(chips_2[chip], (pos_bet_2[chip]))
-            screen.blit(chips_2[chip].image, chips_2[chip].rect)
-    if chips_moved[2] == True:
-        for chip in range(len(chips_3)):
-            update_sprite(chips_3[chip], (pos_bet_3[chip]))
-            screen.blit(chips_3[chip].image, chips_3[chip].rect)
-    if chips_moved[3] == True:
-        for chip in range(len(chips_4)):
-            update_sprite(chips_4[chip], (pos_bet_4[chip]))
-            screen.blit(chips_4[chip].image, chips_4[chip].rect)
-    if chips_moved[4] == True:
-        for chip in range(len(chips_5)):
-            update_sprite(chips_5[chip], (pos_bet_5[chip]))
-            screen.blit(chips_5[chip].image, chips_5[chip].rect)
-    if chips_moved[5] == True:
-        for chip in range(len(chips_6)):
-            print("yes")
-            update_sprite(chips_6[chip], (pos_bet_6[chip]))
-            screen.blit(chips_6[chip].image, chips_6[chip].rect)
+    display_chip()
+    # Enter Play screen
+    if 122 < x < 415:
+        if 57 < y < 202:
+            if Bucks_bet == 0:
+                text("Bet some bucks!!!", 200, 300, white, 20)
+                return "Bet"
+            else:
+                return "Play"
     return "Bet"
+
+
+def Play():
+    bg = pygame.image.load("data/screen/Play_screen.png")
+    pygame.Surface.blit(screen, bg, (0, 0))
+    display_chip()
+    return "Play"
 
 
 while True:
@@ -290,5 +367,7 @@ while True:
         running_screen = Setting()
     if running_screen == "Bet":
         running_screen = Bet()
+    if running_screen == "Play":
+        running_screen = Play()
     pygame.display.flip()
     fps.tick(60)
