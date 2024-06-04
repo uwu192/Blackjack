@@ -1,7 +1,7 @@
 import pygame
-import os
 import sys
 import random
+from moviepy.editor import VideoFileClip
 
 pygame.init()
 # x and y is the position clicked
@@ -18,7 +18,7 @@ screen = pygame.display.set_mode((height, width))
 # fps
 fps = pygame.time.Clock()
 # Background screen is running
-running_screen = "Main"
+running_screen = "Bet"
 white = (255, 255, 255)
 black = (0, 0, 0)
 green = (0, 255, 0)
@@ -30,6 +30,13 @@ Bucks = 10000
 Bucks_bet = 0
 text_Bucks = "10.000"
 counter_disapear = 0
+
+
+# Video
+def Dealt_vid(bots):
+    temp_link = f"data/video/dealt/{bots}bots.mp4"
+    vid_dealt = VideoFileClip(temp_link)
+    return vid_dealt
 
 
 # Subprogram of detail--------------------------------------------
@@ -51,7 +58,7 @@ def text(Contain, x_text, y_text, color, size):
 
 
 # Create dot in text(Ex:10000 -> 10.000)
-def Bucks_dot():
+def Bucks_dot(Bucks):
     counter = 0
     text_Bucks = str(Bucks)
     chars = len(text_Bucks)
@@ -63,7 +70,7 @@ def Bucks_dot():
 
 
 def Bet_text():
-    text(f"Bucks:{Bucks_dot()}", 800, 231, black, 80)
+    text(f"Bucks:{Bucks_dot(Bucks)}", 800, 231, black, 80)
     text("Place your Bet", width // 2 + 350, height // 2 - 450, white, 60)
 
 
@@ -341,15 +348,17 @@ def Bet():
                 text("Bet some bucks!!!", 200, 300, white, 20)
                 return "Bet"
             else:
-                return "Play"
+                return "Dealt"
     return "Bet"
 
 
-def Play():
+def Dealt():
     bg = pygame.image.load("data/screen/Play_screen.png")
-    pygame.Surface.blit(screen, bg, (0, 0))
-    display_chip()
-    return "Play"
+    dealt_vid = Dealt_vid(Bots)
+    dealt_vid = dealt_vid.resize(width=1600, height=900)
+    dealt_vid.preview()
+    if event.type == pygame.MOUSEBUTTONDOWN:
+        return "Play"
 
 
 while True:
@@ -361,13 +370,14 @@ while True:
             x = event.pos[0]
             y = event.pos[1]
             print(x, y)
+    print(running_screen)
     if running_screen == "Main":
         running_screen = Main()
     if running_screen == "Setting":
         running_screen = Setting()
     if running_screen == "Bet":
         running_screen = Bet()
-    if running_screen == "Play":
-        running_screen = Play()
+    if running_screen == "Dealt":
+        running_screen = Dealt()
     pygame.display.flip()
     fps.tick(60)
