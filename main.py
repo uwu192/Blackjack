@@ -1,7 +1,7 @@
 import pygame
 import sys
 import random
-from moviepy.editor import VideoFileClip
+from moviepy.editor import *
 
 pygame.init()
 # x and y is the position clicked
@@ -17,12 +17,13 @@ screen = pygame.display.set_mode((height, width))
 
 # fps
 fps = pygame.time.Clock()
-# Background screen is running
-running_screen = "Bet"
+# Color
 white = (255, 255, 255)
 black = (0, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 128)
+# Background screen is running
+running_screen = "Play"
 # Game
 Bots = 1
 Selector = "Dealer"
@@ -30,6 +31,8 @@ Bucks = 10000
 Bucks_bet = 0
 text_Bucks = "10.000"
 counter_disapear = 0
+Card = []
+Card_picked = [False] * 53
 
 
 # Video
@@ -103,7 +106,7 @@ class MovingSprite(pygame.sprite.Sprite):
             if distance > 1:
                 direction.normalize_ip()
                 # (Dis, speed)
-                self.rect.move_ip(direction * min(distance, 20))
+                self.rect.move_ip(direction * min(distance, 50))
 
 
 # Make this for easier movement input-------------------------
@@ -196,6 +199,16 @@ def create_10k():
 chips_moved = [False] * 6
 
 
+# Create object for Cards-----------------------------------------------
+def create_card():
+    for num in range(1, 53):
+        card_img = pygame.image.load(f"data/card/{num}.png")
+        Card.append(card_img)
+
+
+create_card()
+
+
 # If player clicked chip(screen, not object), create object for that chip
 def Select_chips():
     global Bucks, Bucks_bet
@@ -261,7 +274,7 @@ def Select_chips():
                 Not_enough_text()
 
 
-def display_chip():
+def Display_chip():
     if chips_moved[0] == True:
         for chip in range(len(chips_1)):
             update_sprite(chips_1[chip], (pos_bet_1[chip]))
@@ -340,7 +353,7 @@ def Bet():
     pygame.Surface.blit(screen, bg, (0, 0))
     Bet_text()
     Select_chips()
-    display_chip()
+    Display_chip()
     # Enter Play screen
     if 122 < x < 415:
         if 57 < y < 202:
@@ -353,12 +366,20 @@ def Bet():
 
 
 def Dealt():
-    bg = pygame.image.load("data/screen/Play_screen.png")
     dealt_vid = Dealt_vid(Bots)
     dealt_vid = dealt_vid.resize(width=1600, height=900)
     dealt_vid.preview()
     if event.type == pygame.MOUSEBUTTONDOWN:
         return "Play"
+
+
+def Play():
+    bg = pygame.image.load(f"data/screen/Playing/{Bots}bots.png")
+    pygame.Surface.blit(screen, bg, (0, 0))
+    text(f"You're bet {Bucks_bet} bucks", 783, 60, white, 70)
+    Display_chip()
+    pygame.Surface.blit(screen, Card[0], (200, 300))
+    return "Play"
 
 
 while True:
@@ -370,7 +391,6 @@ while True:
             x = event.pos[0]
             y = event.pos[1]
             print(x, y)
-    print(running_screen)
     if running_screen == "Main":
         running_screen = Main()
     if running_screen == "Setting":
@@ -379,5 +399,7 @@ while True:
         running_screen = Bet()
     if running_screen == "Dealt":
         running_screen = Dealt()
+    if running_screen == "Play":
+        running_screen = Play()
     pygame.display.flip()
     fps.tick(60)
