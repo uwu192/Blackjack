@@ -318,23 +318,19 @@ Ace_points = [1, 10, 11]
 
 
 def trans_card_to_points(card_num, index):
-    print(f"original{card_num}")
     global Have_special_card
     if card_num <= 36:  # 1 -> 10
         card_num /= 4
         card_num = math.ceil(card_num + 1)
     elif card_num <= 48:  # 10 -> K
-        print("test")
         card_num = 10
     else:  # Ace
         temp_max = 0
         for point in Ace_points:
             card_num = Points[index] + point
-            print(f"ace = {card_num}, {point}")
             if card_num > temp_max and card_num <= 21:
                 temp_max = point
         card_num = temp_max
-    print(card_num)
     return card_num
 
 
@@ -432,10 +428,16 @@ def Dealt():
 
 def Play():
     bg = pygame.image.load(f"data/screen/Playing/{Bots}bots.png")
+    bunch_cards = pygame.image.load("data/card/Bunch_cards.png")
+    bunch_cards = pygame.transform.scale(bunch_cards, (400, 400))
     pygame.Surface.blit(screen, bg, (0, 0))
     text(f"You're bet {Bucks_bet} bucks", 783, 60, white, 70)
     Display_chip()
     text(str(Points[0]), 785, 603, white, 70)
+    text("Hit", 995, 191, white, 70)
+    pygame.Surface.blit(screen, bunch_cards, (800, 150))
+    pygame.draw.rect(screen, white, (576, 255, 250, 100), border_radius=20)
+    text("Stay", 701, 303, black, 70)
     for card in range(len(Player)):
         pygame.Surface.blit(screen, Card[Player[card] - 1], (Card_pos[card], 700))
     return "Play"
