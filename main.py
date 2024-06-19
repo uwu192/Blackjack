@@ -2,6 +2,7 @@ import pygame
 import sys
 import random
 from moviepy.editor import *
+import math
 
 pygame.init()
 # x and y is the position clicked
@@ -23,7 +24,7 @@ black = (0, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 128)
 # Background screen is running
-running_screen = "Play"
+running_screen = "Dealt"
 # Game
 Bots = 1
 Selector = "Dealer"
@@ -33,6 +34,9 @@ text_Bucks = "10.000"
 counter_disapear = 0
 Card = []
 Card_picked = [False] * 53
+Card_pos = [573, 727, 852, 971, 999]
+Points = [0] * 5
+Have_cards = [2] * 5  # How many card does Player,Bots have
 
 
 # Video
@@ -203,9 +207,11 @@ chips_moved = [False] * 6
 def create_card():
     for num in range(1, 53):
         card_img = pygame.image.load(f"data/card/{num}.png")
+        card_img = pygame.transform.scale(card_img, (200, 270))
         Card.append(card_img)
 
 
+backside_card = pygame.image.load("data/card/Backside.png")
 create_card()
 
 
@@ -301,6 +307,37 @@ def Display_chip():
             screen.blit(chips_6[chip].image, chips_6[chip].rect)
 
 
+# Gameplay----------------------------------------------------
+Player = []
+Bot1 = []
+Bot2 = []
+Bot3 = []
+Bot4 = []
+Dealted_card = False
+Ace_points = [1, 10, 11]
+
+
+def trans_card_to_points(card_num, index):
+    print(f"original{card_num}")
+    global Have_special_card
+    if card_num <= 36:  # 1 -> 10
+        card_num /= 4
+        card_num = math.ceil(card_num + 1)
+    elif card_num <= 48:  # 10 -> K
+        print("test")
+        card_num = 10
+    else:  # Ace
+        temp_max = 0
+        for point in Ace_points:
+            card_num = Points[index] + point
+            print(f"ace = {card_num}, {point}")
+            if card_num > temp_max and card_num <= 21:
+                temp_max = point
+        card_num = temp_max
+    print(card_num)
+    return card_num
+
+
 # Subprogram of screen---------------------------------------
 def Main():
     bg = pygame.image.load("data/screen/Main_screen.png")
@@ -366,11 +403,31 @@ def Bet():
 
 
 def Dealt():
+    global Dealted_card, Player_points
     dealt_vid = Dealt_vid(Bots)
     dealt_vid = dealt_vid.resize(width=1600, height=900)
     dealt_vid.preview()
-    if event.type == pygame.MOUSEBUTTONDOWN:
-        return "Play"
+    if Dealted_card == False:
+        for i in range(5):
+            a = random.randint(1, 52)
+            b = random.randint(1, 52)
+            while Card_picked[a] == True or Card_picked[b] == True or a == b:
+                a = random.randint(1, 52)
+                b = random.randint(1, 52)
+            Card_picked[a] = True
+            Card_picked[b] = True
+            if i == 0:  # Player
+                Player.append(a)
+                Points[0] += trans_card_to_points(a, 0)
+                Player.append(b)
+                Points[0] += trans_card_to_points(b, 0)
+            else:  # Bots
+                Bot_card_a = f"Bot{i}.append(a)"
+                Bot_card_b = f"Bot{i}.append(b)"
+                exec(Bot_card_a)
+                exec(Bot_card_b)
+        Dealted_card = True
+    return "Play"
 
 
 def Play():
@@ -378,7 +435,9 @@ def Play():
     pygame.Surface.blit(screen, bg, (0, 0))
     text(f"You're bet {Bucks_bet} bucks", 783, 60, white, 70)
     Display_chip()
-    pygame.Surface.blit(screen, Card[0], (200, 300))
+    text(str(Points[0]), 785, 603, white, 70)
+    for card in range(len(Player)):
+        pygame.Surface.blit(screen, Card[Player[card] - 1], (Card_pos[card], 700))
     return "Play"
 
 
