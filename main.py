@@ -27,16 +27,17 @@ blue = (0, 0, 128)
 running_screen = "Dealt"
 # Game
 Bots = 1
-Selector = "Dealer"
+Selector = "Player"
 Bucks = 10000
 Bucks_bet = 0
 text_Bucks = "10.000"
 counter_disapear = 0
 Card = []
 Card_picked = [False] * 53
-Card_pos = [573, 727, 852, 971, 999]
+Card_pos = [573, 727, 852, 971, 1100]
 Points = [0] * 5
 Have_cards = [2] * 5  # How many card does Player,Bots have
+Bust = [False] * 5
 
 
 # Video
@@ -315,22 +316,26 @@ Bot3 = []
 Bot4 = []
 Dealted_card = False
 Ace_points = [1, 10, 11]
+temp_max = []  # Highest points Ace can reach(if Player have more than 2 ace)
 
 
 def trans_card_to_points(card_num, index):
-    global Have_special_card
+    global Have_special_card, temp_max
     if card_num <= 36:  # 1 -> 10
         card_num /= 4
         card_num = math.ceil(card_num + 1)
     elif card_num <= 48:  # 10 -> K
         card_num = 10
     else:  # Ace
-        temp_max = 0
+        temp_ace = 0
         for point in Ace_points:
             card_num = Points[index] + point
-            if card_num > temp_max and card_num <= 21:
-                temp_max = point
-        card_num = temp_max
+            if card_num > temp_ace and card_num <= 21:
+                temp_ace = point
+        if temp_max == []:
+            temp_max.append(temp_ace)
+        print(f"T:{temp_max}")
+        card_num = temp_ace
     return card_num
 
 
@@ -427,19 +432,81 @@ def Dealt():
 
 
 def Play():
+    global Bust, Have_cards, Points, temp_max
     bg = pygame.image.load(f"data/screen/Playing/{Bots}bots.png")
     bunch_cards = pygame.image.load("data/card/Bunch_cards.png")
     bunch_cards = pygame.transform.scale(bunch_cards, (400, 400))
     pygame.Surface.blit(screen, bg, (0, 0))
     text(f"You're bet {Bucks_bet} bucks", 783, 60, white, 70)
     Display_chip()
-    text(str(Points[0]), 785, 603, white, 70)
+    if Have_cards[0] == 5 and Points[0] <= 21:
+        text("Five Card", 785, 603, white, 70)
+    elif Points[0] <= 21:
+        text(str(Points[0]), 785, 603, white, 70)
+    else:
+        text("Bust", 785, 603, white, 70)
+        Bust[0] = True
     text("Hit", 995, 191, white, 70)
     pygame.Surface.blit(screen, bunch_cards, (800, 150))
     pygame.draw.rect(screen, white, (576, 255, 250, 100), border_radius=20)
     text("Stay", 701, 303, black, 70)
     for card in range(len(Player)):
         pygame.Surface.blit(screen, Card[Player[card] - 1], (Card_pos[card], 700))
+    # Hit
+    if 912 < x < 1088:
+        if 231 < y < 493:
+            if Bust[0] == False and Have_cards[0] != 5:
+                Have_cards[0] += 1
+                new_card = random.randint(1, 52)
+                while Card_picked[new_card] == True:
+                    new_card = random.randint(1, 52)
+                Card_picked[new_card] == True
+                Points[0] += trans_card_to_points(new_card, 0)
+                if (
+                    Points[0] > 21 and temp_max != []
+                ):  # Mean Player busted but they're have ace
+                    for index in range(len(temp_max)):
+                        if temp_max[index] != 1:
+                            if Points[0] - 11 + 10 <= 21:
+                                temp_max[index] = 10
+                                Points[0] = Points[0] - 11 + 10
+                                break
+                            elif Points[0] - 11 + 1 <= 21:
+                                temp_max[index] = 1
+                                Points[0] = Points[0] - 11 + 1
+                                break
+                            else:
+                                temp_max[index] = 1
+                                Points[0] = Points[0] - 11 + 1
+                Player.append(new_card)
+                print(Points[0])
+                print(temp_max)
+                reset()
+    # Stay
+    if 577 < x < 819:
+        if 256 < y < 347:
+            if Selector == "Dealer":
+                if Points[0] < 15:
+                    text(
+                        "You're only stay when your points higher than 15",
+                        703,
+                        239,
+                        white,
+                        20,
+                    )
+                else:
+                    return "End"
+            else:
+                if Points[0] < 16:
+                    text(
+                        "You're only stay when your points higher than 16",
+                        630,
+                        239,
+                        white,
+                        20,
+                    )
+                else:
+                    return "End"
     return "Play"
 
 
