@@ -24,10 +24,10 @@ black = (0, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 128)
 # Background screen is running
-running_screen = "Dealt"
+running_screen = "Dealt"  # Main - Setting - Bet - Dealt - Play
 # Game
 Bots = 1
-Selector = "Player"
+Selector = "Player"  # Dealer - Player
 Bucks = 10000
 Bucks_bet = 0
 text_Bucks = "10.000"
@@ -75,11 +75,6 @@ def Bucks_dot(Bucks):
         if counter % 3 == 0 and char > 0:
             text_Bucks = text_Bucks[:char] + "." + text_Bucks[char:]
     return text_Bucks
-
-
-def Bet_text():
-    text(f"Bucks:{Bucks_dot(Bucks)}", 800, 231, black, 80)
-    text("Place your Bet", width // 2 + 350, height // 2 - 450, white, 60)
 
 
 def Not_enough_text():
@@ -308,19 +303,24 @@ def Display_chip():
             screen.blit(chips_6[chip].image, chips_6[chip].rect)
 
 
+def Display_card():
+    for card in range(len(Player)):
+        pygame.Surface.blit(screen, Card[Player[card] - 1], (Card_pos[card], 700))
+
+
 # Gameplay----------------------------------------------------
 Player = []
 Bot1 = []
 Bot2 = []
 Bot3 = []
 Bot4 = []
-Dealted_card = False
+Dealted = False
 Ace_points = [1, 10, 11]
-temp_max = []  # Highest points Ace can reach(if Player have more than 2 ace)
+Aces = [[], [], [], [], []]
 
 
 def trans_card_to_points(card_num, index):
-    global Have_special_card, temp_max
+    global Have_special_card, Aces
     if card_num <= 36:  # 1 -> 10
         card_num /= 4
         card_num = math.ceil(card_num + 1)
@@ -332,11 +332,132 @@ def trans_card_to_points(card_num, index):
             card_num = Points[index] + point
             if card_num > temp_ace and card_num <= 21:
                 temp_ace = point
-        if temp_max == []:
-            temp_max.append(temp_ace)
-        print(f"T:{temp_max}")
+        if Aces[index] == []:
+            Aces[index].append(temp_ace)
+            print(Aces, Aces[index], index)
         card_num = temp_ace
     return card_num
+
+
+def Change_Ace(index):
+    global Aces, Points
+    for ace in range(len(Aces[index])):
+        if Aces[index][ace] != 1:
+            if Points[index] - 11 + 10 <= 21:
+                Aces[index][ace] = 10
+                Points[index] = Points[index] - 11 + 10
+                break
+            elif Points[0] - 11 + 1 <= 21:
+                Aces[index][ace] = 1
+                Points[index] = Points[index] - 11 + 1
+                break
+            else:
+                Aces[index][ace] = 1
+                Points[index] = Points[index] - 11 + 1
+
+
+def Dealt_card():
+    for i in range(5):
+        a = random.randint(1, 52)
+        b = random.randint(1, 52)
+        while Card_picked[a] == True or Card_picked[b] == True or a == b:
+            a = random.randint(1, 52)
+            b = random.randint(1, 52)
+        Card_picked[a] = True
+        Card_picked[b] = True
+        if i == 0:  # Player
+            Player.append(a)
+            Points[0] += trans_card_to_points(a, 0)
+            Player.append(b)
+            Points[0] += trans_card_to_points(b, 0)
+        else:  # Bots
+            Bot_card_a = f"Bot{i}.append(a)"
+            Bot_card_b = f"Bot{i}.append(b)"
+            exec(Bot_card_a)
+            exec(Bot_card_b)
+            Points[i] += trans_card_to_points(a, i)
+            Points[i] += trans_card_to_points(b, i)
+
+
+def Display_points():
+    global Bust
+    if Have_cards[0] == 5 and Points[0] <= 21:
+        text("Five Card", 785, 603, white, 70)
+    elif Points[0] <= 21:
+        text(str(Points[0]), 785, 603, white, 70)
+    else:
+        text("Bust", 785, 603, white, 70)
+        Bust[0] = True
+
+
+def Hit():
+    global Points, Have_cards, temp_max
+    bunch_cards = pygame.image.load("data/card/Bunch_cards.png")
+    bunch_cards = pygame.transform.scale(bunch_cards, (400, 400))
+    text("Hit", 995, 191, white, 70)
+    pygame.Surface.blit(screen, bunch_cards, (800, 150))
+    if 912 < x < 1088:
+        if 231 < y < 493:
+            if Bust[0] == False and Have_cards[0] != 5:
+                Have_cards[0] += 1
+                new_card = random.randint(1, 52)
+                while Card_picked[new_card] == True:
+                    new_card = random.randint(1, 52)
+                Card_picked[new_card] == True
+                Points[0] += trans_card_to_points(new_card, 0)
+                if (
+                    Points[0] > 21 and Aces[0] != []
+                ):  # Mean Player busted but they're have ace(change ace's point)
+                    Change_Ace(0)
+                Player.append(new_card)
+                reset()
+
+
+def Stay():
+    pygame.draw.rect(screen, white, (576, 255, 250, 100), border_radius=20)
+    text("Stay", 701, 303, black, 70)
+    if 577 < x < 819:
+        if 256 < y < 347:
+            if Selector == "Dealer":
+                if Points[0] < 15:
+                    text(
+                        "You're only stay when your points higher than 15",
+                        703,
+                        239,
+                        white,
+                        20,
+                    )
+                else:
+                    return "End"
+            else:
+                if Points[0] < 16:
+                    text(
+                        "You're only stay when your points higher than 16",
+                        630,
+                        239,
+                        white,
+                        20,
+                    )
+                else:
+                    return "End"
+
+
+def Bot_hit():
+    for bot in range(1, 5):
+        if Points[bot] < 16:
+            if Have_cards[bot] != 5 and Bust[bot] != True:
+                Have_cards[bot] += 1
+                new_card = random.randint(1, 52)
+                while Card_picked[new_card] == True:
+                    new_card = random.randint(1, 52)
+                Card_picked[new_card] == True
+                Points[bot] += trans_card_to_points(new_card, 0)
+                if (
+                    Points[bot] > 21 and Aces[bot] != []
+                ):  # Mean Player busted but they're have ace(change ace's point)
+                    Change_Ace(bot)
+                append_bot = f"Bot{bot}.append(new_card)"
+                exec(append_bot)
 
 
 # Subprogram of screen---------------------------------------
@@ -389,7 +510,6 @@ def Bet():
     global counter_1, counter_2, counter_3, counter_4, counter_5, counter_6
     bg = pygame.image.load("data/screen/Bet_screen.png")
     pygame.Surface.blit(screen, bg, (0, 0))
-    Bet_text()
     Select_chips()
     Display_chip()
     # Enter Play screen
@@ -404,110 +524,31 @@ def Bet():
 
 
 def Dealt():
-    global Dealted_card, Player_points
+    global Dealted
     dealt_vid = Dealt_vid(Bots)
     dealt_vid = dealt_vid.resize(width=1600, height=900)
     dealt_vid.preview()
-    if Dealted_card == False:
-        for i in range(5):
-            a = random.randint(1, 52)
-            b = random.randint(1, 52)
-            while Card_picked[a] == True or Card_picked[b] == True or a == b:
-                a = random.randint(1, 52)
-                b = random.randint(1, 52)
-            Card_picked[a] = True
-            Card_picked[b] = True
-            if i == 0:  # Player
-                Player.append(a)
-                Points[0] += trans_card_to_points(a, 0)
-                Player.append(b)
-                Points[0] += trans_card_to_points(b, 0)
-            else:  # Bots
-                Bot_card_a = f"Bot{i}.append(a)"
-                Bot_card_b = f"Bot{i}.append(b)"
-                exec(Bot_card_a)
-                exec(Bot_card_b)
-        Dealted_card = True
+    if Dealted == False:
+        Dealt_card()
+        Dealted = True
     return "Play"
 
 
 def Play():
-    global Bust, Have_cards, Points, temp_max
     bg = pygame.image.load(f"data/screen/Playing/{Bots}bots.png")
-    bunch_cards = pygame.image.load("data/card/Bunch_cards.png")
-    bunch_cards = pygame.transform.scale(bunch_cards, (400, 400))
     pygame.Surface.blit(screen, bg, (0, 0))
     text(f"You're bet {Bucks_bet} bucks", 783, 60, white, 70)
     Display_chip()
-    if Have_cards[0] == 5 and Points[0] <= 21:
-        text("Five Card", 785, 603, white, 70)
-    elif Points[0] <= 21:
-        text(str(Points[0]), 785, 603, white, 70)
-    else:
-        text("Bust", 785, 603, white, 70)
-        Bust[0] = True
-    text("Hit", 995, 191, white, 70)
-    pygame.Surface.blit(screen, bunch_cards, (800, 150))
-    pygame.draw.rect(screen, white, (576, 255, 250, 100), border_radius=20)
-    text("Stay", 701, 303, black, 70)
-    for card in range(len(Player)):
-        pygame.Surface.blit(screen, Card[Player[card] - 1], (Card_pos[card], 700))
-    # Hit
-    if 912 < x < 1088:
-        if 231 < y < 493:
-            if Bust[0] == False and Have_cards[0] != 5:
-                Have_cards[0] += 1
-                new_card = random.randint(1, 52)
-                while Card_picked[new_card] == True:
-                    new_card = random.randint(1, 52)
-                Card_picked[new_card] == True
-                Points[0] += trans_card_to_points(new_card, 0)
-                if (
-                    Points[0] > 21 and temp_max != []
-                ):  # Mean Player busted but they're have ace
-                    for index in range(len(temp_max)):
-                        if temp_max[index] != 1:
-                            if Points[0] - 11 + 10 <= 21:
-                                temp_max[index] = 10
-                                Points[0] = Points[0] - 11 + 10
-                                break
-                            elif Points[0] - 11 + 1 <= 21:
-                                temp_max[index] = 1
-                                Points[0] = Points[0] - 11 + 1
-                                break
-                            else:
-                                temp_max[index] = 1
-                                Points[0] = Points[0] - 11 + 1
-                Player.append(new_card)
-                print(Points[0])
-                print(temp_max)
-                reset()
-    # Stay
-    if 577 < x < 819:
-        if 256 < y < 347:
-            if Selector == "Dealer":
-                if Points[0] < 15:
-                    text(
-                        "You're only stay when your points higher than 15",
-                        703,
-                        239,
-                        white,
-                        20,
-                    )
-                else:
-                    return "End"
-            else:
-                if Points[0] < 16:
-                    text(
-                        "You're only stay when your points higher than 16",
-                        630,
-                        239,
-                        white,
-                        20,
-                    )
-                else:
-                    return "End"
+    Display_points()
+    Display_card()
+    Hit()
+    if Stay() == "End":
+        return "End"
     return "Play"
+
+
+def End():
+    pass
 
 
 while True:
@@ -529,5 +570,7 @@ while True:
         running_screen = Dealt()
     if running_screen == "Play":
         running_screen = Play()
+    if running_screen == "End":
+        running_screen == End()
     pygame.display.flip()
     fps.tick(60)
