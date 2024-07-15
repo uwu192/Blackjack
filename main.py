@@ -23,10 +23,12 @@ white = (255, 255, 255)
 black = (0, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 128)
+red = (255, 0, 0)
+grey = (128, 128, 128)
 # Background screen is running
 running_screen = "Dealt"  # Main - Setting - Bet - Dealt - Play - End
 # Game
-Bots = 4
+Bots = 2
 Selector = "Player"  # Dealer - Player
 Bucks = 10000
 Bucks_bet = 0
@@ -52,6 +54,12 @@ Points_pos = [785, 174, 471, 1117, 1427]
 Points = [0] * 5
 Have_cards = [2] * 5  # How many card does Player,Bots have
 Bust = [False] * 5
+winner = None
+
+
+# Create object for other things(button, icon , vv.v..)
+Up_arrow = pygame.image.load("data/other/up_arrow.png")
+Up_arrow = pygame.transform.scale(Up_arrow, (50, 50))
 
 
 # Video
@@ -373,7 +381,7 @@ def Display_card_end():
                 pygame.Surface.blit(screen, card_img, (Card_pos_bot2_end[card], 600))
             else:
                 pygame.Surface.blit(screen, card_img, (Card_pos_bot2_end[card], 700))
-    if Bots == 2:
+    elif Bots == 2:
         for card in range(Have_cards[2]):
             card_img = Card[Bot2[card] - 1]
             card_img = pygame.transform.scale(card_img, (110, 148))
@@ -402,6 +410,30 @@ def Display_card_end():
                     exec(cmd_card_pos_2)
 
 
+def Display_points(x_y, whose, color):
+    x = x_y[0]
+    y = x_y[1]
+    if five_cards(whose):
+        text("Five Card", x, y, color, 50)
+    elif black_jack(whose):
+        text("Black Jack", x, y, color, 50)
+    elif double_aces(whose):
+        text("Double Aces", x, y, color, 50)
+    elif Points[whose] <= 21:
+        text(str(Points[whose]), x, y, color, 70)
+    else:
+        text("Bust", x, y, color, 70)
+
+
+def Display_dealer():
+    if Selector == "Player":
+        if running_screen == "Play":
+            screen.blit(Up_arrow, (303, 670))
+            text("Dealer", 345, 732, white, 50)
+        else:
+            text("Dealer", 471, 494, white, 50)
+
+
 # Gameplay----------------------------------------------------
 Player = []
 Bot1 = []
@@ -411,6 +443,109 @@ Bot4 = []
 Dealted = False
 Ace_points = [1, 10, 11]
 Aces = [[], [], [], [], []]
+
+
+# Top 1
+def double_aces(whose):
+    return len(Aces[whose]) == 2 and Have_cards[whose] == 2
+
+
+# Top 2
+def black_jack(whose):
+    return Have_cards[whose] == 2 and Points[whose] == 21
+
+
+# Top 3
+def five_cards(whose):
+    return Have_cards[whose] == 5 and Points[whose] <= 21
+
+
+counter_time = 0
+
+
+def Calculating():
+    winner = None
+    if Selector == "Player":
+        # Convert speacial cards to points in rank(2 Aces > Aces_10 > 5 cards > normal > Bust)
+        """ Note: We can access list points_player_bot by for range(0,1)
+            but we should access global list with number in list points_player_bot, not number in loop"""
+        points_player_bot = [0, 2]
+        for whose in range(2):
+            if double_aces(whose):
+                points_player_bot[whose] = 100
+            elif black_jack(whose):
+                points_player_bot[whose] = 50
+            elif five_cards(whose):
+                points_player_bot[whose] = 40
+            else:
+                if Bust[points_player_bot[whose]] == False:
+                    points_player_bot[whose] = Points[points_player_bot[whose]]
+                else:
+                    points_player_bot[whose] = 0
+        if points_player_bot[0] > points_player_bot[1]:
+            winner = "Win"
+        elif points_player_bot[0] == points_player_bot[1]:
+            winner = "Draw"
+        else:
+            winner = "Lose"
+    # counter_disapear: Count how much time loop text Calculating
+    # counter_time: Run while display another subprogram (that's why i dont use for or while loop)
+    global counter_disapear, counter_time
+    if counter_disapear < 3:
+        if counter_time < 2:
+            text("Calculating", 783, 253, white, 70)
+        elif counter_time < 4:
+            text("Calculating.", 783, 253, white, 70)
+        elif counter_time < 6:
+            text("Calculating..", 783, 253, white, 70)
+        elif counter_time < 8:
+            text("Calculating...", 783, 253, white, 70)
+        elif counter_time < 10:
+            text("Calculating....", 783, 253, white, 70)
+        elif counter_time == 10:
+            counter_disapear += 1
+            counter_time = 0
+        if counter_time < 10:
+            counter_time += 1
+    else:
+        counter_disapear = 0
+        counter_time = 0
+        return winner
+
+
+def Winner_light(winner):
+    global counter_disapear, counter_time
+    if Selector == "Player":
+        if counter_disapear < 3:
+            if winner == "Win":
+                text("You win",790,260,white,70)
+                if counter_time % 4 == 0:
+                    Display_points([Points_pos[0], 564], 0, red)
+                    Display_points([Points_pos[2], 564], 2, grey)
+                elif counter_time % 4 != 0:
+                    Display_points([Points_pos[0], 564], 0, white)
+                    Display_points([Points_pos[2], 564], 2, white)
+            elif winner == "Lose":
+                text("You lose",790,260,white,70)
+                if counter_time % 4 == 0:
+                    Display_points([Points_pos[0], 564], 0, grey)
+                    Display_points([Points_pos[2], 564], 2, red)
+                elif counter_time % 4 != 0:
+                    Display_points([Points_pos[0], 564], 0, white)
+                    Display_points([Points_pos[2], 564], 2, white)
+            else:
+                text("Draw",790,260,white,70)
+                if counter_time % 4 == 0:
+                    Display_points([Points_pos[0], 564], 0, grey)
+                    Display_points([Points_pos[2], 564], 2, grey)
+                elif counter_time % 4 != 0:
+                    Display_points([Points_pos[0], 564], 0, white)
+                    Display_points([Points_pos[2], 564], 2, white)
+            if counter_time == 20:
+                counter_disapear += 1
+                counter_time = 0
+            else:
+                counter_time += 1
 
 
 def trans_card_to_points(card_num, index):
@@ -472,17 +607,6 @@ def Dealt_card():
             Points[i] += trans_card_to_points(b, i)
 
 
-def Display_points(x_y, whose):
-    x = x_y[0]
-    y = x_y[1]
-    if Have_cards[whose] == 5 and Points[whose] <= 21:
-        text("Five Card", x, y, white, 70)
-    elif Points[0] <= 21:
-        text(str(Points[whose]), x, y, white, 70)
-    else:
-        text("Bust", x, y, white, 70)
-
-
 def Hit():
     global Points, Have_cards, temp_max
     bunch_cards = pygame.image.load("data/card/Bunch_cards.png")
@@ -540,7 +664,7 @@ def Stay():
 def Bot_hit():
     global Have_cards, Card_picked, Points, Bot1, Bot2, Bot3, Bot4
     for bot in range(1, 5):
-        while Have_cards[bot] < 5:  # Points[bot] <= 17:
+        while Have_cards[bot] < 5 and Points[bot] <= 17:
             if Have_cards[bot] != 5 and Bust[bot] != True:
                 Have_cards[bot] += 1
                 new_card = random.randint(1, 52)
@@ -554,6 +678,8 @@ def Bot_hit():
                     Change_Ace(bot)
                 append_bot = f"Bot{bot}.append(new_card)"
                 exec(append_bot)
+                if Points[bot] > 21:
+                    Bust[bot] = True
 
 
 # Subprogram of screen---------------------------------------
@@ -631,8 +757,9 @@ def Play():
     bg = pygame.image.load(f"data/screen/Playing/{Bots}bots.png")
     pygame.Surface.blit(screen, bg, (0, 0))
     text(f"You're bet {Bucks_bet} bucks", 783, 60, white, 70)
+    Display_dealer()
     Display_chip()
-    Display_points((783, 596), 0)
+    Display_points((783, 596), 0, white)
     Display_card_player_playing()
     if Selector == "Player":
         Hit()
@@ -647,23 +774,47 @@ def Play():
                 30,
             )
             if counter_disapear == 50:
-                return "End"
+                counter_disapear = 0
+                return "Summary"
             else:
                 counter_disapear += 1
     return "Play"
 
 
+def Summary():
+    global winner
+    bg = pygame.image.load(f"data/screen/Ending/{Bots}bots.png")
+    pygame.Surface.blit(screen, bg, (0, 0))
+    Display_dealer()
+    text(f"You're bet {Bucks_bet} bucks", 783, 60, white, 70)
+    # Display Points Player
+    Display_points((Points_pos[0], 564), 0, white)
+    # Display Points Bots
+    if Bots < 3:
+        # Ex:Bots = 1, loop (2 -> Bots + 1 = 2) cause start from 2 => loop (2 -> Bots + 2=2,3)
+        start_bot = 2
+        end_bot = Bots + 2
+    else:
+        # Ex:Bots = 3, loop (1 -> Bots + 2 = 1,2,3) cause start from 1 => loop (1 -> Bots + 1=1,2,3)
+        start_bot = 1
+        end_bot = Bots + 1
+    for bot in range(start_bot, end_bot):
+        Display_points((Points_pos[bot], 564), bot, white)
+    Display_card_end()
+    winner = Calculating()
+    if winner != None:
+        return "End"
+    return "Summary"
+
+
 def End():
     bg = pygame.image.load(f"data/screen/Ending/{Bots}bots.png")
     pygame.Surface.blit(screen, bg, (0, 0))
+    Display_dealer()
     text(f"You're bet {Bucks_bet} bucks", 783, 60, white, 70)
-    Display_chip()
-    # Display Points Player
-    Display_points((Points_pos[0], 564), 0)
-    # Display Points Bots
-    for bot in range(1, Bots + 1):
-        Display_points((Points_pos[bot], 564), bot)
+    Winner_light(winner)
     Display_card_end()
+    return "End"
 
 
 while True:
@@ -685,7 +836,9 @@ while True:
         running_screen = Dealt()
     if running_screen == "Play":
         running_screen = Play()
+    if running_screen == "Summary":
+        running_screen = Summary()
     if running_screen == "End":
-        running_screen == End()
+        running_screen = End()
     pygame.display.flip()
     fps.tick(60)
