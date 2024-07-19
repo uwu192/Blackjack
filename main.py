@@ -26,15 +26,15 @@ blue = (0, 0, 128)
 red = (255, 0, 0)
 grey = (128, 128, 128)
 # Background screen is running
-running_screen = "Dealt"  # Main - Setting - Bet - Dealt - Play - End
+running_screen = "End"  # Main - Setting - Bet - Dealt - Play - Summary - End
 # Game
 Bots = 2
 Selector = "Player"  # Dealer - Player
 Bucks = 10000
-Bucks_bet = 0
+Bucks_bet = 200
 text_Bucks = "10.000"
 counter_disapear = 0
-Card = []
+Card = [] #Sprite object
 Card_picked = [False] * 53
 Card_pos_player = [573, 727, 852, 971, 1100]
 Card_pos_player_end = [675, 735, 805, 700, 800]
@@ -413,12 +413,12 @@ def Display_card_end():
 def Display_points(x_y, whose, color):
     x = x_y[0]
     y = x_y[1]
-    if five_cards(whose):
-        text("Five Card", x, y, color, 50)
+    if double_aces(whose):
+        text("Double Aces", x, y, color, 50)
     elif black_jack(whose):
         text("Black Jack", x, y, color, 50)
-    elif double_aces(whose):
-        text("Double Aces", x, y, color, 50)
+    elif five_cards(whose):
+        text("Five card", x, y, color, 50)
     elif Points[whose] <= 21:
         text(str(Points[whose]), x, y, color, 70)
     else:
@@ -440,7 +440,6 @@ Bot1 = []
 Bot2 = []
 Bot3 = []
 Bot4 = []
-Dealted = False
 Ace_points = [1, 10, 11]
 Aces = [[], [], [], [], []]
 
@@ -464,33 +463,36 @@ counter_time = 0
 
 
 def Calculating():
-    winner = None
+    global Bucks_bet, counter_disapear, counter_time, winner
     if Selector == "Player":
         # Convert speacial cards to points in rank(2 Aces > Aces_10 > 5 cards > normal > Bust)
         """ Note: We can access list points_player_bot by for range(0,1)
-            but we should access global list with number in list points_player_bot, not number in loop"""
+            but we must access global list with number in list points_player_bot, not number in loop"""
         points_player_bot = [0, 2]
         for whose in range(2):
-            if double_aces(whose):
+            if double_aces(points_player_bot[whose]):
                 points_player_bot[whose] = 100
-            elif black_jack(whose):
+            elif black_jack(points_player_bot[whose]):
                 points_player_bot[whose] = 50
-            elif five_cards(whose):
+            elif five_cards(points_player_bot[whose]):
                 points_player_bot[whose] = 40
             else:
                 if Bust[points_player_bot[whose]] == False:
                     points_player_bot[whose] = Points[points_player_bot[whose]]
                 else:
                     points_player_bot[whose] = 0
-        if points_player_bot[0] > points_player_bot[1]:
-            winner = "Win"
-        elif points_player_bot[0] == points_player_bot[1]:
-            winner = "Draw"
-        else:
-            winner = "Lose"
+        #This subprogram will loop mean Bucks_bet can add thousands time but we just need it add once:
+        if counter_disapear == 1 and counter_time == 1:
+            if points_player_bot[0] > points_player_bot[1]:
+                winner = "Win"
+                Bucks_bet += Bucks_bet
+            elif points_player_bot[0] == points_player_bot[1]:
+                winner = "Draw"
+            else:
+                winner = "Lose"
+                Bucks_bet -= Bucks_bet
     # counter_disapear: Count how much time loop text Calculating
     # counter_time: Run while display another subprogram (that's why i dont use for or while loop)
-    global counter_disapear, counter_time
     if counter_disapear < 3:
         if counter_time < 2:
             text("Calculating", 783, 253, white, 70)
@@ -508,15 +510,12 @@ def Calculating():
         if counter_time < 10:
             counter_time += 1
     else:
-        counter_disapear = 0
-        counter_time = 0
-        return winner
-
+        return True
 
 def Winner_light(winner):
     global counter_disapear, counter_time
     if Selector == "Player":
-        if counter_disapear < 3:
+        if counter_disapear < 6:
             if winner == "Win":
                 text("You win",790,260,white,70)
                 if counter_time % 4 == 0:
@@ -546,7 +545,26 @@ def Winner_light(winner):
                 counter_time = 0
             else:
                 counter_time += 1
+        else:
+            counter_disapear = 0
+            counter_time = 0
+            return "End"
 
+def Add_bucks():
+    global text_Bucks_y,Bucks
+    bg = pygame.image.load("data/screen/Ending/Total.png")
+    pygame.Surface.blit(screen,bg, (0,0))
+    if text_Bucks_y < 440:
+        text(f"Bucks:{Bucks}",800,433,white,100)
+        text(f"You earn {Bucks_bet}",800,text_Bucks_y,white,100)
+        text_Bucks_y += 10
+    elif text_Bucks_y == 440:
+        Bucks += Bucks_bet
+        text(f"Bucks:{Bucks}",800,433,white,100)
+        text_Bucks_y += 1
+    else:
+        text(f"Bucks:{Bucks}",800,433,white,100)
+        return True
 
 def trans_card_to_points(card_num, index):
     global Have_special_card, Aces
@@ -681,6 +699,25 @@ def Bot_hit():
                 if Points[bot] > 21:
                     Bust[bot] = True
 
+def reset_all():
+    global Points,text_Bucks_y,winner,Aces,text_Bucks_y,Card_picked,Bust,Have_cards
+    Have_cards = [2] * 5
+    Aces = [[], [], [], [], []]
+    Card_picked = [False] * 53
+    Points = [0] * 5
+    winner = None
+    Player.clear()
+    Bust = [False] * 5
+    text_Bucks_y = 0
+    for index in range(1,5):
+        cmd = f"Bot{index}.clear()"
+        exec(cmd)
+    reset()
+    for index in range(1,7):
+        cmd = f"chips_{index}.clear()"
+        exec(cmd)
+        cmd = f"pos_bet_{index}.clear()"
+        exec(cmd)
 
 # Subprogram of screen---------------------------------------
 def Main():
@@ -697,9 +734,9 @@ def Setting():
     global Bots
     global Selector
     if Selector == "Dealer":
-        bg = pygame.image.load("data/screen/Setting_screen(Dealer).png")
+        bg = pygame.image.load("data/screen/Setting/Dealer.png")
     else:
-        bg = pygame.image.load("data/screen/Setting_screen(Player).png")
+        bg = pygame.image.load("data/screen/Setting/Player.png")
     pygame.Surface.blit(screen, bg, (0, 0))
     text(str(Bots), 840, 460, white, 100)
     Bots = int(Bots)
@@ -732,6 +769,7 @@ def Bet():
     global counter_1, counter_2, counter_3, counter_4, counter_5, counter_6
     bg = pygame.image.load("data/screen/Bet_screen.png")
     pygame.Surface.blit(screen, bg, (0, 0))
+    text(f"Bucks:{Bucks}",793,260,white,70)
     Select_chips()
     Display_chip()
     # Enter Play screen
@@ -746,7 +784,6 @@ def Bet():
 
 
 def Dealt():
-    global Dealted
     Dealt_vid()
     Dealt_card()
     return "Play"
@@ -782,11 +819,10 @@ def Play():
 
 
 def Summary():
-    global winner
-    bg = pygame.image.load(f"data/screen/Ending/{Bots}bots.png")
+    global winner,text_Bucks_y
+    bg = pygame.image.load(f"data/screen/Summary/{Bots}bots.png")
     pygame.Surface.blit(screen, bg, (0, 0))
     Display_dealer()
-    text(f"You're bet {Bucks_bet} bucks", 783, 60, white, 70)
     # Display Points Player
     Display_points((Points_pos[0], 564), 0, white)
     # Display Points Bots
@@ -801,20 +837,35 @@ def Summary():
     for bot in range(start_bot, end_bot):
         Display_points((Points_pos[bot], 564), bot, white)
     Display_card_end()
-    winner = Calculating()
-    if winner != None:
-        return "End"
+    if Calculating():
+       if Winner_light(winner) == "End":
+           return "End"
     return "Summary"
 
-
+#Save variable to loop and make animation for text "You earn"
+text_Bucks_y = 0
 def End():
-    bg = pygame.image.load(f"data/screen/Ending/{Bots}bots.png")
-    pygame.Surface.blit(screen, bg, (0, 0))
-    Display_dealer()
-    text(f"You're bet {Bucks_bet} bucks", 783, 60, white, 70)
-    Winner_light(winner)
-    Display_card_end()
+    global text_Bucks_y
+    if Add_bucks():
+        bg = pygame.image.load("data/screen/Ending/Options.png")
+        pygame.Surface.blit(screen,bg,(0,0))
+        text(f"Bucks:{Bucks}",800,433,white,100)
+        if 197 < x < 677:
+            if 497 < y < 770:
+                text_Bucks_y = 0
+                reset()
+                for chip in range(1,7):
+                    cmd = f"chips_{chip}.clear()"
+                    eval(cmd)
+                    cmd = f"pos_bet_{chip}.clear()"
+                    eval(cmd)
+                return "Main"
+        if 939 < x < 1477:
+            if 488 < y < 771:
+                reset_all()
+                return "Bet"
     return "End"
+
 
 
 while True:
