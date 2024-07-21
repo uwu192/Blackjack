@@ -26,10 +26,10 @@ blue = (0, 0, 128)
 red = (255, 0, 0)
 grey = (128, 128, 128)
 # Background screen is running
-running_screen = "End"  # Main - Setting - Bet - Dealt - Play - Summary - End
+running_screen = "Dealt"  # Main - Setting - Bet - Dealt - Play - Summary - End
 # Game
-Bots = 2
-Selector = "Player"  # Dealer - Player
+Bots = 3
+Selector = "Dealer"  # Dealer - Player
 Bucks = 10000
 Bucks_bet = 200
 text_Bucks = "10.000"
@@ -50,12 +50,13 @@ Card_pos_bot1_end = [30, 111, 188, 70, 150]
 Card_pos_bot2_end = [336, 423, 497, 370, 477]
 Card_pos_bot3_end = [1000, 1070, 1150, 1030, 1100]
 Card_pos_bot4_end = [1310, 1382, 1438, 1350, 1402]
-Points_pos = [785, 174, 471, 1117, 1427]
+Points_pos = [785, 174, 471, 1117, 1427] # Player - Bot1 - 2 - 3 - 4
 Points = [0] * 5
 Have_cards = [2] * 5  # How many card does Player,Bots have
 Bust = [False] * 5
 winner = None
-
+# Player is a Dealer
+showed = [True,False,False,False,False] # Player - Bot1 - 2 - 3 - 4
 
 # Create object for other things(button, icon , vv.v..)
 Up_arrow = pygame.image.load("data/other/up_arrow.png")
@@ -362,6 +363,45 @@ def Display_card_bots_backside():
                 temp_backside_card = eval(temp_rot)
                 exec(temp_pos)
 
+def Display_backcard_end():
+    # Display card player
+    for card in range(Have_cards[0]):
+        card_img = Card[Player[card] - 1]
+        card_img = pygame.transform.scale(card_img, (110, 148))
+        if card < 3:
+            pygame.Surface.blit(screen, card_img, (Card_pos_player_end[card], 600))
+        else:
+            pygame.Surface.blit(screen, card_img, (Card_pos_player_end[card], 700))
+    # Display backcard bots
+    card_img = backside_card
+    card_img = pygame.transform.scale(card_img, (110, 148))
+    if Bots == 1:
+        for card in range(Have_cards[2]):
+            if card < 3:
+                pygame.Surface.blit(screen, card_img, (Card_pos_bot2_end[card], 600))
+            else:
+                pygame.Surface.blit(screen, card_img, (Card_pos_bot2_end[card], 700))
+    elif Bots == 2:
+        for card in range(Have_cards[2]):
+            if card < 3:
+                pygame.Surface.blit(screen, card_img, (Card_pos_bot2_end[card], 600))
+            else:
+                pygame.Surface.blit(screen, card_img, (Card_pos_bot2_end[card], 700))
+        for card in range(Have_cards[3]):
+            if card < 3:
+                pygame.Surface.blit(screen, card_img, (Card_pos_bot3_end[card], 600))
+            else:
+                pygame.Surface.blit(screen, card_img, (Card_pos_bot3_end[card], 700))
+    else:
+        for bot in range(1, Bots + 1):
+            for card in range(Have_cards[bot]):
+                cmd_card_pos_1 = f"pygame.Surface.blit(screen, card_img, (Card_pos_bot{bot}_end[card], 600))"
+                cmd_card_pos_2 = f"pygame.Surface.blit(screen, card_img, (Card_pos_bot{bot}_end[card], 700))"
+                if card < 3:
+                    exec(cmd_card_pos_1)
+                else:
+                    exec(cmd_card_pos_2)
+
 
 def Display_card_end():
     # Display card player
@@ -432,7 +472,38 @@ def Display_dealer():
             text("Dealer", 345, 732, white, 50)
         else:
             text("Dealer", 471, 494, white, 50)
+    else:
+        text("Dealer",786,494,white,50)
 
+def Display_show_button():
+    if Bots == 1:
+        if showed[2] == False:
+            text("Show",Points_pos[2],564,white,50)
+        if Points_pos[2] - 130 < x < Points_pos[2] + 130:
+                if 541 < y < 600:
+                    reset()
+                    showed[2] = True
+    elif Bots == 2:
+        if showed[2] == False:
+            text("Show",Points_pos[2],564,white,50)
+        if Points_pos[2] - 130 < x < Points_pos[2] + 130:
+                if 541 < y < 600:
+                    reset()
+                    showed[2] = True
+        if showed[3] == False:
+            text("Show",Points_pos[3],564,white,50)
+        if Points_pos[3] - 130 < x < Points_pos[3] + 130:
+                if 541 < y < 600:
+                    reset()
+                    showed[3] = True
+    else:
+        for bot in range(1,Bots+1):
+            if showed[bot] == False:
+                text("Show",Points_pos[bot],564,white,50)
+            if Points_pos[bot] - 130 < x < Points_pos[bot] + 130:
+                if 541 < y < 600:
+                    reset()
+                    showed[bot] = True
 
 # Gameplay----------------------------------------------------
 Player = []
@@ -784,9 +855,14 @@ def Bet():
 
 
 def Dealt():
+    global Selector
     Dealt_vid()
     Dealt_card()
-    return "Play"
+    if Selector == "Player":
+        return "Play"
+    else:
+        Bot_hit()
+        return "Summary"
 
 
 def Play():
@@ -825,21 +901,27 @@ def Summary():
     Display_dealer()
     # Display Points Player
     Display_points((Points_pos[0], 564), 0, white)
-    # Display Points Bots
-    if Bots < 3:
-        # Ex:Bots = 1, loop (2 -> Bots + 1 = 2) cause start from 2 => loop (2 -> Bots + 2=2,3)
-        start_bot = 2
-        end_bot = Bots + 2
-    else:
-        # Ex:Bots = 3, loop (1 -> Bots + 2 = 1,2,3) cause start from 1 => loop (1 -> Bots + 1=1,2,3)
-        start_bot = 1
-        end_bot = Bots + 1
-    for bot in range(start_bot, end_bot):
-        Display_points((Points_pos[bot], 564), bot, white)
-    Display_card_end()
-    if Calculating():
-       if Winner_light(winner) == "End":
-           return "End"
+    if Selector == "Player":
+        # Display Points Bots
+        if Bots < 3:
+            # Ex:Bots = 1, loop (2 -> Bots + 1 = 2) cause start from 2 => loop (2 -> Bots + 2=2,3)
+            start_bot = 2
+            end_bot = Bots + 2
+        else:
+            # Ex:Bots = 3, loop (1 -> Bots + 2 = 1,2,3) cause start from 1 => loop (1 -> Bots + 1=1,2,3)
+            start_bot = 1
+            end_bot = Bots + 1
+        for bot in range(start_bot, end_bot):
+            Display_points((Points_pos[bot], 564), bot, white)
+        Display_card_end()
+        if Calculating():
+            if Winner_light(winner) == "End":
+                return "End"
+    elif Selector == "Dealer":
+        Display_backcard_end()
+        Display_show_button()
+        Hit()
+
     return "Summary"
 
 #Save variable to loop and make animation for text "You earn"
