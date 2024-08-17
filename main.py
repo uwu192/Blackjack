@@ -28,7 +28,7 @@ grey = (128, 128, 128)
 # Background screen is running
 running_screen = "Dealt"  # Main - Setting - Bet - Dealt - Play - Summary - End
 # Game
-Bots = 1
+Bots = 4
 Selector = "Dealer"  # Dealer - Player
 Bucks = 10000
 Bucks_bet = 200
@@ -61,10 +61,10 @@ showed_num = 0
 challenging = (
     None  # Keep Player challenging with a bot if Player want to show another cards bot
 )
-lower = False
+lower = False  # Check if Dealer (Player) lower than the bot
 calc_again = False
-finished = False
-bot_busted = 0
+finished = False  # Check if Dealer busted or all bot showed
+won = 0
 
 # Create object for other things(button, icon , vv.v..)
 Up_arrow = pygame.image.load("data/other/up_arrow.png")
@@ -523,7 +523,7 @@ def Display_show_button():
         if Points_pos[2] - 130 < x < Points_pos[2] + 130:
             if 541 < y < 600:
                 if challenging == None:
-                    if Points[0] > 15:
+                    if Points[0] >= 15:
                         reset()
                         showed[2] = True
                         challenging = 2
@@ -544,7 +544,7 @@ def Display_show_button():
         if Points_pos[2] - 130 < x < Points_pos[2] + 130:
             if 541 < y < 600:
                 if challenging == None:
-                    if Points[0] > 15:
+                    if Points[0] >= 15:
                         reset()
                         showed[2] = True
                         challenging = 2
@@ -564,7 +564,7 @@ def Display_show_button():
         if Points_pos[3] - 130 < x < Points_pos[3] + 130:
             if 541 < y < 600:
                 if challenging == None:
-                    if Points[0] > 15:
+                    if Points[0] >= 15:
                         reset()
                         showed[3] = True
                         challenging = 3
@@ -586,7 +586,7 @@ def Display_show_button():
             if Points_pos[bot] - 130 < x < Points_pos[bot] + 130:
                 if 541 < y < 600:
                     if challenging == None:
-                        if Points[0] > 15:
+                        if Points[0] >= 15:
                             reset()
                             showed[bot] = True
                             challenging = bot
@@ -612,6 +612,9 @@ def Display_show_button():
 def Display_finish_button():
     if finished == True:
         screen.blit(Finish_button, (680, 140))
+        if 688 < x < 874:
+            if 214 < y < 344:
+                return "Finish"
 
 
 # Gameplay----------------------------------------------------
@@ -643,7 +646,7 @@ counter_time = 0
 
 
 def Calculating(bot):
-    global Bucks_bet, counter_disapear, counter_time, winner, lower, calc_again
+    global Bucks_bet, counter_disapear, counter_time, winner, lower, calc_again, won
     # Convert speacial cards to points in rank(2 Aces > Aces_10 > 5 cards > normal > Bust)
     """ Note: We can access list points_player_bot by for range(0,1)
         but we must access global list with number in list points_player_bot, not number in loop"""
@@ -663,6 +666,7 @@ def Calculating(bot):
     # This subprogram will loop mean Bucks_bet can add thousands time but we just need it add once:
     if counter_disapear == 1 and counter_time == 1:
         if points_player_bot[0] > points_player_bot[1]:
+            won += 1
             winner = "Win"
             Bucks_bet += Bucks_bet
         elif points_player_bot[0] == points_player_bot[1]:
@@ -673,6 +677,7 @@ def Calculating(bot):
             winner = "Lose"
             if calc_again == False:
                 lower = True
+            won -= 1
             Bucks_bet -= Bucks_bet
     # counter_disapear: Count how much time loop text Calculating
     # counter_time: Run while display another subprogram (that's why i dont use for or while loop)
@@ -907,14 +912,16 @@ def reset_all():
 
 
 def Dealer_busted():
-    global showed, counter_time, counter_disapear, bot_busted, finished
+    global showed, counter_time, counter_disapear, finished, won
+    print(won)
     if Bust[0] == True:
         finished = True
         text("Dealer Busted, gonna show all!", 776, 59, white, 50)
+        for bot in range(1, 5):
+            if showed[bot] == False:
+                if Bust[bot] == False:
+                    won -= 1
         showed = [True] * 5
-    for bot in range(1, 5):
-        if Bust[bot] == True:
-            bot_busted += 1
 
 
 def Check_if_all_bot_showed():
@@ -1089,11 +1096,13 @@ def Summary():
                     else:
                         Winner_light(winner, challenging)
         Dealer_busted()
-        print(counter_disapear, counter_time)
         # Waiting for running last winner_light
-        if counter_time == 0 and counter_disapear == 0:
+        if (
+            counter_time == 0 and counter_disapear == 6
+        ):  # Last subprogram of winner_light
             Check_if_all_bot_showed()
-        Display_finish_button()
+        if Display_finish_button() == "Finish":
+            Count_how_many_won()
     return "Summary"
 
 
