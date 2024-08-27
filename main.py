@@ -31,7 +31,8 @@ running_screen = "Dealt"  # Main - Setting - Bet - Dealt - Play - Summary - End
 Bots = 4
 Selector = "Dealer"  # Dealer - Player
 Bucks = 10000
-Bucks_bet = 200
+Bucks_bet = 0
+Bucks_won = 0
 text_Bucks = "10.000"
 counter_disapear = 0
 Card = []  # Sprite object
@@ -65,6 +66,7 @@ lower = False  # Check if Dealer (Player) lower than the bot
 calc_again = False
 finished = False  # Check if Dealer busted or all bot showed
 won = 0
+Displayed_won = False
 
 # Create object for other things(button, icon , vv.v..)
 Up_arrow = pygame.image.load("data/other/up_arrow.png")
@@ -248,8 +250,18 @@ backside_card = pygame.transform.scale(backside_card, (110, 148))
 create_card()
 
 
+def Check_range_dealer_pay(Plus_bucks_bet):
+    Max_pay = (Bucks_bet + Plus_bucks_bet) * Bots
+    if Max_pay <= Bucks:
+        return True
+    else:
+        return False
+
+
 # If player clicked chip(screen, not object), create object for that chip
-def Select_chips():
+
+
+def Select_chips_player():
     global Bucks, Bucks_bet
     if 105 < x < 284:
         if 630 < y < 761:
@@ -311,6 +323,74 @@ def Select_chips():
                 reset()
             else:
                 Not_enough_text()
+
+
+def Select_chips_dealer():
+    global Bucks, Bucks_bet
+    if 105 < x < 284:
+        if 630 < y < 761:
+            if Check_range_dealer_pay(5):
+                Bucks_bet += 5
+                Bucks -= 5
+                create_5()
+                chips_moved[0] = True
+                reset()
+            else:
+                Not_enough_text()
+    if 314 < x < 482:
+        if 625 < y < 784:
+            if Check_range_dealer_pay(10):
+                Bucks_bet += 10
+                create_10()
+                chips_moved[1] = True
+                reset()
+            else:
+                Not_enough_text()
+    if 519 < x < 652:
+        if 623 < y < 785:
+            if Check_range_dealer_pay(50):
+                Bucks_bet += 50
+                create_50()
+                chips_moved[2] = True
+                reset()
+            else:
+                Not_enough_text()
+    if 928 < x < 1074:
+        if 615 < y < 747:
+            if Check_range_dealer_pay(100):
+                Bucks_bet += 100
+                create_100()
+                chips_moved[3] = True
+                reset()
+            else:
+                Not_enough_text()
+    if 1117 < x < 1282:
+        if 618 < y < 762:
+            if Check_range_dealer_pay(1000):
+                Bucks_bet += 1000
+                create_1k()
+                chips_moved[4] = True
+                reset()
+            else:
+                Not_enough_text()
+    if 1312 < x < 1467:
+        if 632 < y < 784:
+            if Check_range_dealer_pay(10000):
+                Bucks_bet += 10000
+                create_10k()
+                chips_moved[5] = True
+                reset()
+            else:
+                Not_enough_text()
+
+
+def Select_chips():
+    # Player must bet for win x2 or lose all
+    # Dealer can make rule how many Bot's bet( In range Dealer can pay though )
+    if Selector == "Player":
+        Select_chips_player()
+    else:
+        Select_chips_dealer()
 
 
 def Display_chip():
@@ -436,7 +516,7 @@ def Display_card_end_bot():
         if showed[2] == True or Selector == "Player":
             Display_points((Points_pos[2], 564), 2, white)
             for card in range(Have_cards[2]):
-                card_img = Card[Bot2[card] - 1]
+                card_img = Card[Bot2[card]]
                 card_img = pygame.transform.scale(card_img, (110, 148))
                 if card < 3:
                     pygame.Surface.blit(
@@ -450,7 +530,7 @@ def Display_card_end_bot():
         if showed[2] == True or Selector == "Player":
             Display_points((Points_pos[2], 564), 2, white)
             for card in range(Have_cards[2]):
-                card_img = Card[Bot2[card] - 1]
+                card_img = Card[Bot2[card]]
                 card_img = pygame.transform.scale(card_img, (110, 148))
                 if card < 3:
                     pygame.Surface.blit(
@@ -463,7 +543,7 @@ def Display_card_end_bot():
         if showed[3] == True or Selector == "Player":
             Display_points((Points_pos[3], 564), 3, white)
             for card in range(Have_cards[3]):
-                card_img = Card[Bot3[card] - 1]
+                card_img = Card[Bot3[card]]
                 card_img = pygame.transform.scale(card_img, (110, 148))
                 if card < 3:
                     pygame.Surface.blit(
@@ -478,7 +558,7 @@ def Display_card_end_bot():
             if showed[bot] == True or Selector == "Player":
                 Display_points((Points_pos[bot], 564), bot, white)
                 for card in range(Have_cards[bot]):
-                    cmd_card_img = f"Card[Bot{bot}[card] - 1]"
+                    cmd_card_img = f"Card[Bot{bot}[card]]"
                     card_img = eval(cmd_card_img)
                     card_img = pygame.transform.scale(card_img, (110, 148))
                     cmd_card_pos_1 = f"pygame.Surface.blit(screen, card_img, (Card_pos_bot{bot}_end[card], 600))"
@@ -520,76 +600,13 @@ def Display_show_button():
     if Bots == 1:
         if showed[2] == False:
             text("Show", Points_pos[2], 564, white, 50)
-        if Points_pos[2] - 130 < x < Points_pos[2] + 130:
-            if 541 < y < 600:
-                if challenging == None:
-                    if Points[0] >= 15:
-                        reset()
-                        showed[2] = True
-                        challenging = 2
-                        showed_num += 1
-                    else:
-                        text(
-                            "You can't show another when Points below 15",
-                            772,
-                            60,
-                            white,
-                            50,
-                        )
-                else:
-                    text("You can't show another when challenging", 772, 60, white, 50)
-    elif Bots == 2:
-        if showed[2] == False:
-            text("Show", Points_pos[2], 564, white, 50)
-        if Points_pos[2] - 130 < x < Points_pos[2] + 130:
-            if 541 < y < 600:
-                if challenging == None:
-                    if Points[0] >= 15:
-                        reset()
-                        showed[2] = True
-                        challenging = 2
-                        showed_num += 1
-                    else:
-                        text(
-                            "You can't show another when Points below 15",
-                            772,
-                            60,
-                            white,
-                            50,
-                        )
-                else:
-                    text("You can't show another when challenging", 772, 60, white, 50)
-        if showed[3] == False:
-            text("Show", Points_pos[3], 564, white, 50)
-        if Points_pos[3] - 130 < x < Points_pos[3] + 130:
-            if 541 < y < 600:
-                if challenging == None:
-                    if Points[0] >= 15:
-                        reset()
-                        showed[3] = True
-                        challenging = 3
-                        showed_num += 1
-                    else:
-                        text(
-                            "You can't show another when Points below 15",
-                            772,
-                            60,
-                            white,
-                            50,
-                        )
-                else:
-                    text("You can't show another when challenging", 772, 60, white, 50)
-    else:
-        for bot in range(1, Bots + 1):
-            if showed[bot] == False:
-                text("Show", Points_pos[bot], 564, white, 50)
-            if Points_pos[bot] - 130 < x < Points_pos[bot] + 130:
+            if Points_pos[2] - 130 < x < Points_pos[2] + 130:
                 if 541 < y < 600:
                     if challenging == None:
                         if Points[0] >= 15:
                             reset()
-                            showed[bot] = True
-                            challenging = bot
+                            showed[2] = True
+                            challenging = 2
                             showed_num += 1
                         else:
                             text(
@@ -607,14 +624,110 @@ def Display_show_button():
                             white,
                             50,
                         )
+    elif Bots == 2:
+        if showed[2] == False:
+            text("Show", Points_pos[2], 564, white, 50)
+            if Points_pos[2] - 130 < x < Points_pos[2] + 130:
+                if 541 < y < 600:
+                    if challenging == None:
+                        if Points[0] >= 15:
+                            reset()
+                            showed[2] = True
+                            challenging = 2
+                            showed_num += 1
+                        else:
+                            text(
+                                "You can't show another when Points below 15",
+                                772,
+                                60,
+                                white,
+                                50,
+                            )
+                    else:
+                        text(
+                            "You can't show another when challenging",
+                            772,
+                            60,
+                            white,
+                            50,
+                        )
+        if showed[3] == False:
+            text("Show", Points_pos[3], 564, white, 50)
+            if Points_pos[3] - 130 < x < Points_pos[3] + 130:
+                if 541 < y < 600:
+                    if challenging == None:
+                        if Points[0] >= 15:
+                            reset()
+                            showed[3] = True
+                            challenging = 3
+                            showed_num += 1
+                        else:
+                            text(
+                                "You can't show another when Points below 15",
+                                772,
+                                60,
+                                white,
+                                50,
+                            )
+                    else:
+                        text(
+                            "You can't show another when challenging",
+                            772,
+                            60,
+                            white,
+                            50,
+                        )
+    else:
+        for bot in range(1, Bots + 1):
+            if showed[bot] == False:
+                text("Show", Points_pos[bot], 564, white, 50)
+                if Points_pos[bot] - 130 < x < Points_pos[bot] + 130:
+                    if 541 < y < 600:
+                        if challenging == None:
+                            if Points[0] >= 15:
+                                reset()
+                                showed[bot] = True
+                                challenging = bot
+                                showed_num += 1
+                            else:
+                                text(
+                                    "You can't show another when Points below 15",
+                                    772,
+                                    60,
+                                    white,
+                                    50,
+                                )
+                        else:
+                            text(
+                                "You can't show another when challenging",
+                                772,
+                                60,
+                                white,
+                                50,
+                            )
 
 
 def Display_finish_button():
+    global Displayed_won
     if finished == True:
         screen.blit(Finish_button, (680, 140))
+        if Displayed_won == True:
+            text("<- Click again", 980, 263, white, 30)
         if 688 < x < 874:
             if 214 < y < 344:
-                return "Finish"
+                if Displayed_won == True:
+                    return "Finish"
+                Displayed_won = True
+                reset()
+
+
+def Display_won_lose():
+    if won < 0:
+        text(f"You lose {abs(won)} Bots", 772, 60, white, 50)
+    elif won == 0:
+        text(f"You won nothing", 772, 60, white, 50)
+    else:
+        text(f"You won {won} Bots", 772, 60, white, 50)
 
 
 # Gameplay----------------------------------------------------
@@ -646,7 +759,7 @@ counter_time = 0
 
 
 def Calculating(bot):
-    global Bucks_bet, counter_disapear, counter_time, winner, lower, calc_again, won
+    global counter_disapear, counter_time, winner, lower, calc_again, won, Bucks_won
     # Convert speacial cards to points in rank(2 Aces > Aces_10 > 5 cards > normal > Bust)
     """ Note: We can access list points_player_bot by for range(0,1)
         but we must access global list with number in list points_player_bot, not number in loop"""
@@ -668,7 +781,7 @@ def Calculating(bot):
         if points_player_bot[0] > points_player_bot[1]:
             won += 1
             winner = "Win"
-            Bucks_bet += Bucks_bet
+            Bucks_won += Bucks_bet
         elif points_player_bot[0] == points_player_bot[1]:
             winner = "Draw"
             if calc_again == False:
@@ -677,8 +790,9 @@ def Calculating(bot):
             winner = "Lose"
             if calc_again == False:
                 lower = True
-            won -= 1
-            Bucks_bet -= Bucks_bet
+            else:
+                won -= 1
+                Bucks_won -= Bucks_bet
     # counter_disapear: Count how much time loop text Calculating
     # counter_time: Run while display another subprogram (that's why i dont use for or while loop)
     if counter_disapear < 3:
@@ -745,20 +859,28 @@ def Add_bucks():
     bg = pygame.image.load("data/screen/Ending/Total.png")
     pygame.Surface.blit(screen, bg, (0, 0))
     if text_Bucks_y < 440:
+        if Bucks_won >= 0:
+            text(f"You earn {Bucks_won}", 800, text_Bucks_y, white, 100)
+        else:
+            text(f"You lose {Bucks_won}", 800, text_Bucks_y, white, 100)
         text(f"Bucks:{Bucks}", 800, 433, white, 100)
-        text(f"You earn {Bucks_bet}", 800, text_Bucks_y, white, 100)
         text_Bucks_y += 10
+
     elif text_Bucks_y == 440:
-        Bucks += Bucks_bet
+        Bucks += Bucks_won
         text(f"Bucks:{Bucks}", 800, 433, white, 100)
         text_Bucks_y += 1
     else:
-        text(f"Bucks:{Bucks}", 800, 433, white, 100)
+        if Bucks <= 0:
+            text("You're Fuckup", 800, 433, white, 100)
+        else:
+            text(f"Bucks:{Bucks}", 800, 433, white, 100)
         return True
 
 
 def trans_card_to_points(card_num, index):
-    global Have_special_card, Aces
+    global Aces
+    print(f"Ace :{card_num}, {index}")
     if card_num <= 36:  # 1 -> 10
         card_num /= 4
         card_num = math.ceil(card_num + 1)
@@ -801,6 +923,7 @@ def Dealt_card():
             b = random.randint(1, 52)
         Card_picked[a] = True
         Card_picked[b] = True
+        print(a, b)
         if i == 0:  # Player
             Player.append(a)
             Points[0] += trans_card_to_points(a, 0)
@@ -879,7 +1002,7 @@ def Bot_hit():
                 while Card_picked[new_card] == True:
                     new_card = random.randint(1, 52)
                 Card_picked[new_card] == True
-                Points[bot] += trans_card_to_points(new_card, 0)
+                Points[bot] += trans_card_to_points(new_card, bot)
                 if (
                     Points[bot] > 21 and Aces[bot] != []
                 ):  # Mean Bot busted but they're have ace(change ace's point)
@@ -891,7 +1014,7 @@ def Bot_hit():
 
 
 def reset_all():
-    global Points, text_Bucks_y, winner, Aces, text_Bucks_y, Card_picked, Bust, Have_cards
+    global Points, text_Bucks_y, winner, Aces, text_Bucks_y, Bucks_bet, Card_picked, Bust, Have_cards, showed, showed_num, challenging, lower, calc_again, finished, won, Displayed_won
     Have_cards = [2] * 5
     Aces = [[], [], [], [], []]
     Card_picked = [False] * 53
@@ -909,18 +1032,50 @@ def reset_all():
         exec(cmd)
         cmd = f"pos_bet_{index}.clear()"
         exec(cmd)
+    showed = [True, False, False, False, False]
+    showed_num = 0
+    challenging = None
+    lower = False
+    calc_again = False
+    finished = False
+    won = 0
+    Displayed_won = False
+    Bucks_bet = 0
 
 
-def Dealer_busted():
-    global showed, counter_time, counter_disapear, finished, won
-    print(won)
-    if Bust[0] == True:
-        finished = True
-        text("Dealer Busted, gonna show all!", 776, 59, white, 50)
+def Check_bot_bust():
+    global won, Bucks_won
+    # Mean challenging and pick another card then busted, so won -1
+    if challenging != None:
+        Bucks_won -= Bucks_bet
+        won -= 1
+    if Bots == 1:
+        if showed[2] == False:
+            if Bust[2] == False:
+                Bucks_won -= Bucks_bet
+                won -= 1
+    elif Bots == 2:
+        for bot in range(2, 4):
+            if showed[bot] == False:
+                if Bust[bot] == False:
+                    Bucks_won -= Bucks_bet
+                    won -= 1
+    else:
         for bot in range(1, 5):
             if showed[bot] == False:
                 if Bust[bot] == False:
+                    Bucks_won -= Bucks_bet
                     won -= 1
+
+
+def Dealer_busted():
+    global showed, finished, challenging
+    if Bust[0] == True:
+        finished = True
+        if Displayed_won == False:
+            text("Dealer Busted, gonna show all!", 776, 59, white, 50)
+        Check_bot_bust()
+        challenging = None
         showed = [True] * 5
 
 
@@ -977,10 +1132,14 @@ def Setting():
 
 
 def Bet():
-    global counter_1, counter_2, counter_3, counter_4, counter_5, counter_6
+    global Bucks_won
     bg = pygame.image.load("data/screen/Bet_screen.png")
     pygame.Surface.blit(screen, bg, (0, 0))
-    text(f"Bucks:{Bucks}", 793, 260, white, 70)
+    if Selector == "Player":
+        text(f"Bucks:{Bucks}", 793, 260, white, 70)
+    else:
+        text(f"Bucks:{Bucks}", 793, 300, white, 70)
+        text(f"Can Pay:{Bucks_bet*Bots}", 793, 240, white, 70)
     Select_chips()
     Display_chip()
     # Enter Play screen
@@ -996,7 +1155,7 @@ def Bet():
 
 def Dealt():
     global Selector
-    Dealt_vid()
+    # Dealt_vid()
     Dealt_card()
     if Selector == "Player":
         return "Play"
@@ -1102,7 +1261,9 @@ def Summary():
         ):  # Last subprogram of winner_light
             Check_if_all_bot_showed()
         if Display_finish_button() == "Finish":
-            Count_how_many_won()
+            return "End"
+        if Displayed_won == True:
+            Display_won_lose()
     return "Summary"
 
 
