@@ -24,8 +24,8 @@ The game follows standard BlackJack rules, allowing the player to compete agains
 
 1. **Clone the Repository:**
     ```bash
-    git clone https://github.com/uwu192/BlackJack-Game.git
-    cd BlackJack-Game
+    git clone https://github.com/uwu192/Blackjack.git
+    cd Blackjack
     ```
 
 2. **Run the Game:**
