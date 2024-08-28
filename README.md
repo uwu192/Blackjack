@@ -11,9 +11,9 @@ The game follows standard BlackJack rules, allowing the player to compete agains
 - **Interactive Gameplay:** Point and click gameplay
 - **Dealer AI:** Bots follows basic BlackJack rules to decide when to hit or stand.
 - **Multiple Rounds:** Players can play multiple rounds without restarting the game.
-- **Restart with old Money** Players can play new game with previous money they got
-- **Player can choose role** Players can choose be a dealer or player
-- 
+- **Restart with old Money:** Players can play new game with previous money they got
+- **Player can choose role:** Players can choose be a dealer or player
+  
 ## **Technologies Used**
 
 - **Programming Language:** Python
@@ -35,12 +35,12 @@ The game follows standard BlackJack rules, allowing the player to compete agains
     - Players will choose to be a dealer or normal player
     - Players will start with a certain amount of chips. (10k)
     - Place your bet at the beginning of each round.
-   # Player
-    - Choose to "Hit" to receive another card or "Stand" to keep your current hand.
-    - Try to beat the dealer by getting closer to 21 without exceeding it.
-  # Dealer
-    - Choose to "Show" Bot's card to challenging it and Dealer can "Hit" while challenging
-    - Choose a safe cards to win as much as possible
+    # Player
+        - Choose to "Hit" to receive another card or "Stand" to keep your current hand.
+        - Try to beat the dealer by getting closer to 21 without exceeding it.
+    # Dealer
+        - Choose to "Show" Bot's card to challenging it and Dealer can "Hit" while challenging
+        - Choose a safe cards to win as much as possible
   - Play new round until boring or debt
     
 ## **Installation**
