@@ -29,7 +29,7 @@ The game follows standard BlackJack rules, allowing the player to compete agains
     ```
 
 2. **Run the Game:**
-    - Make sure you have python language and lib colligate installed before running the game.
+    - In folder dist, double click Game.exe to play
 
 3. **Gameplay:**
     - Players will choose to be a dealer or normal player
