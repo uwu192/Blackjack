@@ -21,13 +21,20 @@ pygame.display.set_icon(logo)
 # Sound
 sound_click = pygame.mixer.Sound("data/sound/click.wav")
 sound_bet = pygame.mixer.Sound("data/sound/chip.wav")
-num_sound_background = random.randint(1, 5)
-sound_background = pygame.mixer.Sound(
-    f"data/sound/background/{num_sound_background}.mp3"
-)
-sound_background.play()
+playlist = []
+for i in range(1, 6):
+    playlist.append(pygame.mixer.Sound(f"data/sound/background/{i}.mp3"))
+background_playing = playlist.pop(0)
+playlist.append(background_playing)
+background_playing.play()
+
+win_sound = pygame.mixer.Sound("data/sound/win.wav")
+lose_sound = pygame.mixer.Sound("data/sound/lose.wav")
+draw_sound = pygame.mixer.Sound("data/sound/draw.wav")
+
 # fps
 fps = pygame.time.Clock()
+
 # Color
 white = (255, 255, 255)
 black = (0, 0, 0)
@@ -37,10 +44,12 @@ red = (255, 0, 0)
 grey = (128, 128, 128)
 # Background screen is running
 running_screen = "Main"  # Main - Setting - Bet - Dealt - Play - Summary - End
+
 # Game
 Bots = 4
 Selector = "Dealer"  # Dealer - Player
-Bucks = 10000
+with open("data/Bucks.txt", "r") as file:
+    Bucks = int(file.readline())
 Bucks_bet = 0
 Bucks_won = 0
 text_Bucks = "10.000"
@@ -77,6 +86,7 @@ calc_again = False
 finished = False  # Check if Dealer busted or all bot showed
 won = 0
 Displayed_won = False
+Stayed = False
 
 # Create object for other things(button, icon , vv.v..)
 Up_arrow = pygame.image.load("data/other/up_arrow.png")
@@ -528,11 +538,12 @@ def Display_card_end_player():
 
 
 def Display_card_end_bot():
+    # Minus 1 because list "Card" start with 0 but card in list Bot{number} start with 1
     if Bots == 1:
         if showed[2] == True or Selector == "Player":
             Display_points((Points_pos[2], 564), 2, white)
             for card in range(Have_cards[2]):
-                card_img = Card[Bot2[card]]
+                card_img = Card[Bot2[card] - 1]
                 card_img = pygame.transform.scale(card_img, (110, 148))
                 if card < 3:
                     pygame.Surface.blit(
@@ -546,7 +557,7 @@ def Display_card_end_bot():
         if showed[2] == True or Selector == "Player":
             Display_points((Points_pos[2], 564), 2, white)
             for card in range(Have_cards[2]):
-                card_img = Card[Bot2[card]]
+                card_img = Card[Bot2[card] - 1]
                 card_img = pygame.transform.scale(card_img, (110, 148))
                 if card < 3:
                     pygame.Surface.blit(
@@ -559,7 +570,7 @@ def Display_card_end_bot():
         if showed[3] == True or Selector == "Player":
             Display_points((Points_pos[3], 564), 3, white)
             for card in range(Have_cards[3]):
-                card_img = Card[Bot3[card]]
+                card_img = Card[Bot3[card] - 1]
                 card_img = pygame.transform.scale(card_img, (110, 148))
                 if card < 3:
                     pygame.Surface.blit(
@@ -574,7 +585,7 @@ def Display_card_end_bot():
             if showed[bot] == True or Selector == "Player":
                 Display_points((Points_pos[bot], 564), bot, white)
                 for card in range(Have_cards[bot]):
-                    cmd_card_img = f"Card[Bot{bot}[card]]"
+                    cmd_card_img = f"Card[Bot{bot}[card] - 1]"
                     card_img = eval(cmd_card_img)
                     card_img = pygame.transform.scale(card_img, (110, 148))
                     cmd_card_pos_1 = f"pygame.Surface.blit(screen, card_img, (Card_pos_bot{bot}_end[card], 600))"
@@ -721,6 +732,7 @@ def Display_show_button():
                                 white,
                                 50,
                             )
+                            reset()
 
 
 def Display_finish_button():
@@ -795,20 +807,29 @@ def Calculating(bot):
     # This subprogram will loop mean Bucks_bet can add thousands time but we just need it add once:
     if counter_disapear == 1 and counter_time == 1:
         if points_player_bot[0] > points_player_bot[1]:
-            won += 1
             winner = "Win"
-            Bucks_won += Bucks_bet
+            if Selector == "Player":
+                Bucks_won += Bucks_bet * 2
+            elif Selector == "Dealer":
+                won += 1
+                Bucks_won += Bucks_bet
         elif points_player_bot[0] == points_player_bot[1]:
             winner = "Draw"
-            if calc_again == False:
-                lower = True
+            if Selector == "Player":
+                Bucks_won += Bucks_bet
+            elif Selector == "Dealer":
+                if calc_again == False:
+                    lower = True
         else:
             winner = "Lose"
-            if calc_again == False:
-                lower = True
-            else:
-                won -= 1
-                Bucks_won -= Bucks_bet
+            if Selector == "Player":
+                Bucks_won -= 0
+            elif Selector == "Dealer":
+                if calc_again == False:
+                    lower = True
+                else:
+                    won -= 1
+                    Bucks_won -= Bucks_bet
     # counter_disapear: Count how much time loop text Calculating
     # counter_time: Run while display another subprogram (that's why i dont use for or while loop)
     if counter_disapear < 3:
@@ -835,6 +856,7 @@ def Winner_light(winner, bot):
     global counter_disapear, counter_time, challenging
     if counter_disapear < 6:
         if winner == "Win":
+            win_sound.play()
             text("You win", 760, 260, white, 70)
             if counter_time % 4 == 0:
                 Display_points([Points_pos[0], 564], 0, red)
@@ -843,6 +865,7 @@ def Winner_light(winner, bot):
                 Display_points([Points_pos[0], 564], 0, white)
                 Display_points([Points_pos[bot], 564], bot, white)
         elif winner == "Lose":
+            lose_sound.play()
             text("You lose", 760, 260, white, 70)
             if counter_time % 4 == 0:
                 Display_points([Points_pos[0], 564], 0, grey)
@@ -851,6 +874,7 @@ def Winner_light(winner, bot):
                 Display_points([Points_pos[0], 564], 0, white)
                 Display_points([Points_pos[bot], 564], bot, white)
         else:
+            draw_sound.play()
             text("Draw", 760, 260, white, 70)
             if counter_time % 4 == 0:
                 Display_points([Points_pos[0], 564], 0, grey)
@@ -965,7 +989,7 @@ def Hit():
                 new_card = random.randint(1, 52)
                 while Card_picked[new_card] == True:
                     new_card = random.randint(1, 52)
-                Card_picked[new_card] == True
+                Card_picked[new_card] = True
                 Points[0] += trans_card_to_points(new_card, 0)
                 if (
                     Points[0] > 21 and Aces[0] != []
@@ -978,6 +1002,7 @@ def Hit():
 
 
 def Stay():
+    global Stayed
     pygame.draw.rect(screen, white, (576, 255, 250, 100), border_radius=20)
     text("Stay", 701, 303, black, 70)
     if 577 < x < 819:
@@ -992,7 +1017,7 @@ def Stay():
                         20,
                     )
                 else:
-                    return "End"
+                    Stayed = True
             else:
                 if Points[0] < 16 and Have_cards[0] != 5:
                     text(
@@ -1003,7 +1028,7 @@ def Stay():
                         20,
                     )
                 else:
-                    return "End"
+                    Stayed = True
 
 
 def Bot_hit():
@@ -1015,7 +1040,7 @@ def Bot_hit():
                 new_card = random.randint(1, 52)
                 while Card_picked[new_card] == True:
                     new_card = random.randint(1, 52)
-                Card_picked[new_card] == True
+                Card_picked[new_card] = True
                 Points[bot] += trans_card_to_points(new_card, bot)
                 if (
                     Points[bot] > 21 and Aces[bot] != []
@@ -1028,7 +1053,7 @@ def Bot_hit():
 
 
 def reset_all():
-    global Points, text_Bucks_y, winner, Aces, text_Bucks_y, Bucks_bet, Card_picked, Bust, Have_cards, showed, showed_num, challenging, lower, calc_again, finished, won, Displayed_won
+    global Points, text_Bucks_y, winner, Aces, text_Bucks_y, Bucks_bet, Card_picked, Bust, Have_cards, showed, showed_num, challenging, lower, calc_again, finished, won, Displayed_won, Stayed, Bucks_won
     Have_cards = [2] * 5
     Aces = [[], [], [], [], []]
     Card_picked = [False] * 53
@@ -1055,6 +1080,8 @@ def reset_all():
     won = 0
     Displayed_won = False
     Bucks_bet = 0
+    Stayed = False
+    Bucks_won = 0
 
 
 def Check_bot_bust():
@@ -1189,7 +1216,8 @@ def Play():
     Display_card_player_playing()
     if Selector == "Player":
         Hit()
-        if Stay() == "End":
+        Stay()
+        if Stayed == True:
             Bot_hit()
             Display_card_bots_backside()
             text(
@@ -1300,6 +1328,7 @@ def End():
                     eval(cmd)
                     cmd = f"pos_bet_{chip}.clear()"
                     eval(cmd)
+                reset_all()
                 return "Main"
         if 939 < x < 1477:
             if 488 < y < 771:
@@ -1311,6 +1340,8 @@ def End():
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            with open("data/Bucks.txt", "w") as file:
+                file.write(str(Bucks))
             pygame.quit()
             sys.exit()
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -1332,5 +1363,10 @@ while True:
         running_screen = Summary()
     if running_screen == "End":
         running_screen = End()
+    if pygame.mixer.get_busy() == False:
+        # First playlist go to last so that we can loop
+        background_playing = playlist.pop(0)
+        background_playing.play()
+        playlist.append(background_playing)
     pygame.display.flip()
     fps.tick(60)
