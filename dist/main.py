@@ -22,8 +22,15 @@ pygame.display.set_icon(logo)
 sound_click = pygame.mixer.Sound("data/sound/click.wav")
 sound_bet = pygame.mixer.Sound("data/sound/chip.wav")
 playlist = []
-for i in range(1, 6):
-    playlist.append(pygame.mixer.Sound(f"data/sound/background/{i}.mp3"))
+num_background_used = []
+# Random 5 sound from folder data/sound/background/
+for i in range(5):
+    num_background = random.randint(1, 5)
+    if num_background not in num_background_used:
+        num_background_used.append(num_background)
+        playlist.append(
+            pygame.mixer.Sound(f"data/sound/background/{num_background}.mp3")
+        )
 background_playing = playlist.pop(0)
 playlist.append(background_playing)
 background_playing.play()
