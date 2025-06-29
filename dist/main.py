@@ -34,7 +34,11 @@ for i in range(5):
 background_playing = playlist.pop(0)
 playlist.append(background_playing)
 background_playing.play()
-
+# Setting on/off
+with open("data/Settings.txt", "r") as inp:
+    Audio, Click_Sound = map(int, inp.readline().split())  # Audio - Click
+    print(Audio, Click_Sound)
+background_playing.set_volume(Audio)
 win_sound = pygame.mixer.Sound("data/sound/win.wav")
 lose_sound = pygame.mixer.Sound("data/sound/lose.wav")
 draw_sound = pygame.mixer.Sound("data/sound/draw.wav")
@@ -60,7 +64,7 @@ with open("data/Bucks.txt", "r") as file:
 Bucks_bet = 0
 Bucks_won = 0
 text_Bucks = "10.000"
-counter_disapear = 0
+counter_disappear = 0
 Card = []  # Sprite object
 Card_picked = [False] * 53
 Card_pos_player = [573, 727, 852, 971, 1100]
@@ -100,6 +104,10 @@ Up_arrow = pygame.image.load("data/other/up_arrow.png")
 Up_arrow = pygame.transform.scale(Up_arrow, (50, 50))
 Finish_button = pygame.image.load("data/other/finish_button.png")
 Finish_button = pygame.transform.scale(Finish_button, (200, 280))
+Audio_on = pygame.image.load("data/other/audio_on.png")
+Audio_on = pygame.transform.scale(Audio_on, (100, 100))
+Audio_off = pygame.image.load("data/other/audio_off.png")
+Audio_off = pygame.transform.scale(Audio_off, (100, 100))
 
 
 # Video
@@ -114,7 +122,7 @@ def Dealt_vid():
 
 # Subprogram of detail--------------------------------------------
 # Reset x,y after clicked(or else it'll contain x,y and loop infinity if they meet func if else)
-def reset():
+def reset_click():
     global x, y
     x = 0
     y = 0
@@ -143,13 +151,13 @@ def Bucks_dot(Bucks):
 
 
 def Not_enough_text():
-    global counter_disapear
-    if counter_disapear < 50:
+    global counter_disappear
+    if counter_disappear < 50:
         text("Not enough bucks!!!", 771, 57, green, 100)
-        counter_disapear += 1
+        counter_disappear += 1
     else:
-        counter_disapear = 0
-        reset()
+        counter_disappear = 0
+        reset_click()
 
 
 # Movement sprite--------------------------------------------
@@ -303,7 +311,7 @@ def Select_chips_player():
                 Bucks -= 5
                 create_5()
                 chips_moved[0] = True
-                reset()
+                reset_click()
             else:
                 Not_enough_text()
     if 314 < x < 482:
@@ -313,7 +321,7 @@ def Select_chips_player():
                 Bucks -= 10
                 create_10()
                 chips_moved[1] = True
-                reset()
+                reset_click()
             else:
                 Not_enough_text()
     if 519 < x < 652:
@@ -323,7 +331,7 @@ def Select_chips_player():
                 Bucks -= 50
                 create_50()
                 chips_moved[2] = True
-                reset()
+                reset_click()
             else:
                 Not_enough_text()
     if 928 < x < 1074:
@@ -333,7 +341,7 @@ def Select_chips_player():
                 Bucks -= 100
                 create_100()
                 chips_moved[3] = True
-                reset()
+                reset_click()
             else:
                 Not_enough_text()
     if 1117 < x < 1282:
@@ -343,7 +351,7 @@ def Select_chips_player():
                 Bucks -= 1000
                 create_1k()
                 chips_moved[4] = True
-                reset()
+                reset_click()
             else:
                 Not_enough_text()
     if 1312 < x < 1467:
@@ -353,7 +361,7 @@ def Select_chips_player():
                 Bucks -= 10000
                 create_10k()
                 chips_moved[5] = True
-                reset()
+                reset_click()
             else:
                 Not_enough_text()
 
@@ -367,7 +375,7 @@ def Select_chips_dealer():
                 Bucks -= 5
                 create_5()
                 chips_moved[0] = True
-                reset()
+                reset_click()
             else:
                 Not_enough_text()
     if 314 < x < 482:
@@ -376,7 +384,7 @@ def Select_chips_dealer():
                 Bucks_bet += 10
                 create_10()
                 chips_moved[1] = True
-                reset()
+                reset_click()
             else:
                 Not_enough_text()
     if 519 < x < 652:
@@ -385,7 +393,7 @@ def Select_chips_dealer():
                 Bucks_bet += 50
                 create_50()
                 chips_moved[2] = True
-                reset()
+                reset_click()
             else:
                 Not_enough_text()
     if 928 < x < 1074:
@@ -394,7 +402,7 @@ def Select_chips_dealer():
                 Bucks_bet += 100
                 create_100()
                 chips_moved[3] = True
-                reset()
+                reset_click()
             else:
                 Not_enough_text()
     if 1117 < x < 1282:
@@ -403,7 +411,7 @@ def Select_chips_dealer():
                 Bucks_bet += 1000
                 create_1k()
                 chips_moved[4] = True
-                reset()
+                reset_click()
             else:
                 Not_enough_text()
     if 1312 < x < 1467:
@@ -412,7 +420,7 @@ def Select_chips_dealer():
                 Bucks_bet += 10000
                 create_10k()
                 chips_moved[5] = True
-                reset()
+                reset_click()
             else:
                 Not_enough_text()
 
@@ -638,7 +646,7 @@ def Display_show_button():
                 if 541 < y < 600:
                     if challenging == None:
                         if Points[0] >= 15:
-                            reset()
+                            reset_click()
                             showed[2] = True
                             challenging = 2
                             showed_num += 1
@@ -665,7 +673,7 @@ def Display_show_button():
                 if 541 < y < 600:
                     if challenging == None:
                         if Points[0] >= 15:
-                            reset()
+                            reset_click()
                             showed[2] = True
                             challenging = 2
                             showed_num += 1
@@ -691,7 +699,7 @@ def Display_show_button():
                 if 541 < y < 600:
                     if challenging == None:
                         if Points[0] >= 15:
-                            reset()
+                            reset_click()
                             showed[3] = True
                             challenging = 3
                             showed_num += 1
@@ -719,7 +727,7 @@ def Display_show_button():
                     if 541 < y < 600:
                         if challenging == None:
                             if Points[0] >= 15:
-                                reset()
+                                reset_click()
                                 showed[bot] = True
                                 challenging = bot
                                 showed_num += 1
@@ -739,7 +747,7 @@ def Display_show_button():
                                 white,
                                 50,
                             )
-                            reset()
+                            reset_click()
 
 
 def Display_finish_button():
@@ -753,7 +761,7 @@ def Display_finish_button():
                 if Displayed_won == True:
                     return "Finish"
                 Displayed_won = True
-                reset()
+                reset_click()
 
 
 def Display_won_lose():
@@ -794,8 +802,8 @@ counter_time = 0
 
 
 def Calculating(bot):
-    global counter_disapear, counter_time, winner, lower, calc_again, won, Bucks_won
-    # Convert speacial cards to points in rank(2 Aces > Aces_10 > 5 cards > normal > Bust)
+    global counter_disappear, counter_time, winner, lower, calc_again, won, Bucks_won
+    # Convert special cards to points in rank(2 Aces > Aces_10 > 5 cards > normal > Bust)
     """ Note: We can access list points_player_bot by for range(0,1)
         but we must access global list with number in list points_player_bot, not number in loop"""
     points_player_bot = [0, bot]
@@ -812,7 +820,7 @@ def Calculating(bot):
             else:
                 points_player_bot[whose] = 0
     # This subprogram will loop mean Bucks_bet can add thousands time but we just need it add once:
-    if counter_disapear == 1 and counter_time == 1:
+    if counter_disappear == 1 and counter_time == 1:
         if points_player_bot[0] > points_player_bot[1]:
             winner = "Win"
             if Selector == "Player":
@@ -837,9 +845,9 @@ def Calculating(bot):
                 else:
                     won -= 1
                     Bucks_won -= Bucks_bet
-    # counter_disapear: Count how much time loop text Calculating
+    # counter_disappear : Count how much time loop text Calculating
     # counter_time: Run while display another subprogram (that's why i dont use for or while loop)
-    if counter_disapear < 3:
+    if counter_disappear < 3:
         if counter_time < 2:
             text("Calculating", 723, 253, white, 70)
         elif counter_time < 4:
@@ -851,7 +859,7 @@ def Calculating(bot):
         elif counter_time < 10:
             text("Calculating....", 723, 253, white, 70)
         elif counter_time == 10:
-            counter_disapear += 1
+            counter_disappear += 1
             counter_time = 0
         if counter_time < 10:
             counter_time += 1
@@ -860,8 +868,8 @@ def Calculating(bot):
 
 
 def Winner_light(winner, bot):
-    global counter_disapear, counter_time, challenging
-    if counter_disapear < 6:
+    global counter_disappear, counter_time, challenging
+    if counter_disappear < 6:
         if winner == "Win":
             win_sound.play()
             text("You win", 760, 260, white, 70)
@@ -890,12 +898,12 @@ def Winner_light(winner, bot):
                 Display_points([Points_pos[0], 564], 0, white)
                 Display_points([Points_pos[bot], 564], bot, white)
         if counter_time == 20:
-            counter_disapear += 1
+            counter_disappear += 1
             counter_time = 0
         else:
             counter_time += 1
     else:
-        counter_disapear = 0
+        counter_disappear = 0
         counter_time = 0
         challenging = None
         return "End"
@@ -1005,7 +1013,7 @@ def Hit():
                 Player.append(new_card)
                 if Points[0] > 21:
                     Bust[0] = True
-                reset()
+                reset_click()
 
 
 def Stay():
@@ -1072,7 +1080,7 @@ def reset_all():
     for index in range(1, 5):
         cmd = f"Bot{index}.clear()"
         exec(cmd)
-    reset()
+    reset_click()
     for index in range(1, 7):
         cmd = f"chips_{index}.clear()"
         exec(cmd)
@@ -1145,15 +1153,29 @@ def Main():
 
 
 def Setting():
-    global Bots
-    global Selector
+    global Bots, Selector, Audio
     if Selector == "Dealer":
         bg = pygame.image.load("data/screen/Setting/Dealer.png")
     else:
         bg = pygame.image.load("data/screen/Setting/Player.png")
     pygame.Surface.blit(screen, bg, (0, 0))
+    if Audio == True:
+        pygame.Surface.blit(screen, Audio_on, (50, 50))
+    else:
+        pygame.Surface.blit(screen, Audio_off, (50, 50))
+    # Audio on/off
+    if 62 < x < 135:
+        if 63 < y < 141:
+            if Audio == True:
+                background_playing.set_volume(0)
+                Audio = 0
+            else:
+                background_playing.set_volume(1)
+                Audio = 1
+            reset_click()
     text(str(Bots), 840, 460, white, 100)
     Bots = int(Bots)
+    print(Audio)
     # Role pick
     if 1259 > x > 1038:
         if 709 > y > 579:
@@ -1166,12 +1188,12 @@ def Setting():
         if 423 > y > 352:
             if Bots < 4:
                 Bots += 1
-                reset()
+                reset_click()
     if 1081 > x > 1024:
         if 535 > y > 483:
             if Bots > 1:
                 Bots -= 1
-                reset()
+                reset_click()
     # Enter Bet screen
     if 970 > x > 610:
         if 874 > y > 763:
@@ -1213,7 +1235,7 @@ def Dealt():
 
 
 def Play():
-    global counter_disapear
+    global counter_disappear
     bg = pygame.image.load(f"data/screen/Playing/{Bots}bots.png")
     pygame.Surface.blit(screen, bg, (0, 0))
     text(f"You're bet {Bucks_bet} bucks", 783, 60, white, 70)
@@ -1228,22 +1250,22 @@ def Play():
             Bot_hit()
             Display_card_bots_backside()
             text(
-                f"Wait bots counting their cards:{50 - counter_disapear}",
+                f"Wait bots counting their cards:{50 - counter_disappear }",
                 1280,
                 166,
                 white,
                 30,
             )
-            if counter_disapear == 50:
-                counter_disapear = 0
+            if counter_disappear == 50:
+                counter_disappear = 0
                 return "Summary"
             else:
-                counter_disapear += 1
+                counter_disappear += 1
     return "Play"
 
 
 def Summary_player():
-    # Dsplay Points Bots
+    # Display Points Bots
     if Bots < 3:
         # Ex:Bots = 1, loop (2 -> Bots + 1 = 2) cause start from 2 => loop (2 -> Bots + 2=2,3)
         start_bot = 2
@@ -1263,7 +1285,7 @@ def Summary_player():
 
 
 def Summary():
-    global winner, text_Bucks_y, lower, counter_disapear, counter_time, challenging, calc_again
+    global winner, text_Bucks_y, lower, counter_disappear, counter_time, challenging, calc_again
     bg = pygame.image.load(f"data/screen/Summary/{Bots}bots.png")
     pygame.Surface.blit(screen, bg, (0, 0))
     Display_dealer()
@@ -1292,7 +1314,7 @@ def Summary():
                     if 699 < x < 752:
                         if 277 < y < 306:
                             # reset to recalculating
-                            counter_disapear = 0
+                            counter_disappear = 0
                             counter_time = 0
                             lower = False
                             calc_again = True
@@ -1306,7 +1328,7 @@ def Summary():
         Dealer_busted()
         # Waiting for running last winner_light
         if (
-            counter_time == 0 and counter_disapear == 6
+            counter_time == 0 and counter_disappear == 6
         ):  # Last subprogram of winner_light
             Check_if_all_bot_showed()
         if Display_finish_button() == "Finish":
@@ -1329,7 +1351,7 @@ def End():
         if 197 < x < 677:
             if 497 < y < 770:
                 text_Bucks_y = 0
-                reset()
+                reset_click()
                 for chip in range(1, 7):
                     cmd = f"chips_{chip}.clear()"
                     eval(cmd)
@@ -1349,6 +1371,8 @@ while True:
         if event.type == pygame.QUIT:
             with open("data/Bucks.txt", "w") as file:
                 file.write(str(Bucks))
+            with open("data/Settings.txt", "w") as file:
+                file.write(str(Audio) + " " + str(Click_Sound))
             pygame.quit()
             sys.exit()
         if event.type == pygame.MOUSEBUTTONDOWN:
