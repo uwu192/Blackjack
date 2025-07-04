@@ -36,9 +36,7 @@ playlist.append(background_playing)
 background_playing.play()
 # Setting on/off
 with open("data/Settings.txt", "r") as inp:
-    Audio, Click_Sound = map(int, inp.readline().split())  # Audio - Click
-    print(Audio, Click_Sound)
-background_playing.set_volume(Audio)
+    Audio = int(inp.readline())
 win_sound = pygame.mixer.Sound("data/sound/win.wav")
 lose_sound = pygame.mixer.Sound("data/sound/lose.wav")
 draw_sound = pygame.mixer.Sound("data/sound/draw.wav")
@@ -111,9 +109,10 @@ Audio_off = pygame.transform.scale(Audio_off, (100, 100))
 
 
 # Video
-def Dealt_vid():
+def Dealt_vid(Audio):
     vid = Video(f"data/video/dealt/{Bots}bots.mp4")
     vid.resize(size=(1600, 900))
+    vid.set_volume(Audio)
     while vid.active:
         if vid.draw(screen, (0, 0), force_draw=False):
             pygame.display.update()
@@ -158,6 +157,23 @@ def Not_enough_text():
     else:
         counter_disappear = 0
         reset_click()
+
+
+def SetSoundOnOff(Audio):
+    if Audio == True:
+        background_playing.set_volume(1)
+        sound_bet.set_volume(1)
+        sound_click.set_volume(1)
+        lose_sound.set_volume(1)
+        win_sound.set_volume(1)
+        draw_sound.set_volume(1)
+    else:
+        background_playing.set_volume(0)
+        sound_bet.set_volume(0)
+        sound_click.set_volume(0)
+        lose_sound.set_volume(0)
+        win_sound.set_volume(0)
+        draw_sound.set_volume(0)
 
 
 # Movement sprite--------------------------------------------
@@ -1143,6 +1159,7 @@ def Check_if_all_bot_showed():
 
 # Subprogram of screen---------------------------------------
 def Main():
+    SetSoundOnOff(Audio)
     bg = pygame.image.load("data/screen/Main_screen.png")
     pygame.Surface.blit(screen, bg, (0, 0))
     # Enter Setting screen
@@ -1167,15 +1184,13 @@ def Setting():
     if 62 < x < 135:
         if 63 < y < 141:
             if Audio == True:
-                background_playing.set_volume(0)
                 Audio = 0
             else:
-                background_playing.set_volume(1)
                 Audio = 1
+            SetSoundOnOff(Audio)
             reset_click()
     text(str(Bots), 840, 460, white, 100)
     Bots = int(Bots)
-    print(Audio)
     # Role pick
     if 1259 > x > 1038:
         if 709 > y > 579:
@@ -1225,7 +1240,7 @@ def Bet():
 
 def Dealt():
     global Selector
-    Dealt_vid()
+    Dealt_vid(Audio)
     Dealt_card()
     if Selector == "Player":
         return "Play"
@@ -1372,7 +1387,7 @@ while True:
             with open("data/Bucks.txt", "w") as file:
                 file.write(str(Bucks))
             with open("data/Settings.txt", "w") as file:
-                file.write(str(Audio) + " " + str(Click_Sound))
+                file.write(str(Audio))
             pygame.quit()
             sys.exit()
         if event.type == pygame.MOUSEBUTTONDOWN:
